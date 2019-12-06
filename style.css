@@ -1,0 +1,57 @@
+body {
+  font-family: Georgia;
+  font-size: 16px;
+  align-self: left;
+  margin: 0 auto;   /* center content */
+  max-width: 800px; /* limit width */  					
+  
+}
+p{
+  margin-bottom: 12px;
+}
+
+h1{
+  font-family: Georgia;
+  font-size: 36px;
+  font-weight: 400
+  
+}
+h2{
+  font-family: Georgia;
+  font-size: 32px;
+  font-weight: 400
+  
+}
+h3{
+  font-family: Georgia;
+  font-size: 20px;
+  font-weight: 400 
+  
+  
+}
+
+#header {
+  font-family: Georgia;
+  text-align: center;
+  
+  margin: 0 auto;   
+  max-width: 800px; 
+  line-height: 1.5;
+  margin-bottom: 32px;
+  padding-bottom: 0px
+}
+#main {
+  font-family: Georgia;
+  text-align: left;
+
+  max-width: 800px; 
+  margin-bottom: 8px;
+  
+}
+
+#footer {
+  font-family: Georgia;
+  text-align: center;
+  max-width: 800px; 	
+  margin-top: 64px;
+ 
