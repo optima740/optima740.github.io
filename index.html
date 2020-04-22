@@ -31,3 +31,20 @@ title: Home
     <span class="pagination-item newer">Пока это все</span>
   {% endif %}
 </div>
+
+{% if site.posts != empty %}
+<aside class="related">
+  <h3>Други статьи</h3>
+  <ul class="related-posts">
+    {% for post in site.posts %}
+      <li>
+        <a href="{{ post.baseurl }}{{ post.url }}">
+          {{ post.title }}
+          <small><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time></small>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+</aside>
+{% endif %}
+
