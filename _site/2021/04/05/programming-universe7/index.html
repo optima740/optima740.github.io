@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+ 
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      Вселенная программирования. Ключевые концепции ч4 - Темная сторона параллелизма. &middot; AndreyMelnikov.MyBlog
+    
+  </title>
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/apple-touch-icon-precomposed.ico" type="image/vnd.microsoft.icon">
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?">
+  <link rel="alternate" type="application/atom+xml" title="AndreyMelnikov.MyBlog" href="/atom.xml">
+
+
+  <!-- Begin Jekyll SEO tag v2.6.1 -->
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Вселенная программирования. Ключевые концепции ч4 - Темная сторона параллелизма." />
+<meta name="author" content="Andrey Melnikov" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="http://localhost:4000/2021/04/05/programming-universe7/" />
+<meta property="og:url" content="http://localhost:4000/2021/04/05/programming-universe7/" />
+<meta property="og:site_name" content="AndreyMelnikov.MyBlog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-04-05T00:00:00+03:00" />
+<script type="application/ld+json">
+{"headline":"Вселенная программирования. Ключевые концепции ч4 - Темная сторона параллелизма.","dateModified":"2021-04-05T00:00:00+03:00","datePublished":"2021-04-05T00:00:00+03:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2021/04/05/programming-universe7/"},"url":"http://localhost:4000/2021/04/05/programming-universe7/","author":{"@type":"Person","name":"Andrey Melnikov"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+
+  <body>
+	<table>
+	<p></p>
+	</table>
+    <div class="container content">
+	
+      <header class="masthead">
+        <h3 class="masthead-title">
+          <a href="/" title="Home">AndreyMelnikov.MyBlog</a>
+          <small>   # мой блог: IT-марафон.</small>
+        </h3>
+		<p><img src="/image/my_avatar.jpeg"</p>
+      </header>
+
+      <main>
+        <article class="post">
+  <h1 class="post-title">Вселенная программирования. Ключевые концепции ч4 - Темная сторона параллелизма.</h1>
+  <time datetime="2021-04-05T00:00:00+03:00" class="post-date">05 Apr 2021</time>
+  <p><img src="/image/post-2021-01-10/1.png" alt="" /></p>
+
+<p>Продолжаем тему концепции <a href="https://optima740.github.io/2021/03/25/programming-universe6/">параллелизма</a>.<br />
+На первый взгляд параллельное программирование выглядит многообещающим и эффективным способом повысить производительность программной системы. <br />
+Но есть один существенный момент в данной концепции, который является и основной проблемой. После того, как в программной системе появились именованные состояния и параллелизм одновременно- это привело к появлению явного (наблюдаемого) <strong>недетерминизма</strong> (вспоминаем <a href="https://optima740.github.io/2021/01/26/programming-universe3/">статью</a> про вычислительные модели и степень недетерминизма). То есть программа от вызова к вызову может выдавать разные результаты на одних и тех же входных данных. Так случается потому, что потоки могут получать доступ к именованным состояниям (переменным) в непредсказуемом порядке, который зависит от внешних условий. И причина этой изменчивости (недетерминизма) в том, что точное время, когда будет выполнена та или иная инструкция в программе теперь неизвестно потому, что потоки работают независимо и не представляют, какие инструкции выполняются в других потоках. Иначе данную ситуацию в параллельном программировании называют <strong>проблемой конкуренции</strong> или <strong>race condition</strong>.</p>
+
+<p>Рассмотрим пример кода Python ниже.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="c1"># функция 1 потока
+</span><span class="k">def</span> <span class="nf">thread_one</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># функция 2 потока
+</span><span class="k">def</span> <span class="nf">thread_two</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">2</span>
+</code></pre></div></div>
+<p>В результате такой работы в переменной <strong><code class="highlighter-rouge">a</code></strong> будет либо 1, либо 2, но мы не можем заранее предсказать, какое значение именно. Причина в том, что в реальных условиях работа потоков чередуется, причём в общем случае невозможно понять как.<br />
+Дело в том, что исходный код программы транслируется интерпретатором в двоичный машинный код (если упростить), и механизм обеспечения одновременного выполнения потоков выделяет, так называемый, квант времени поочерёдно каждому потоку. За этот квант времени может, например, выполниться всего одна машинная инструкция, то есть явную привязку квантованного выполнения к исходному коду выполнить фактически невозможно. 
+Но, даже если мы будем условно считать, что за один квант выполняется одна инструкция исходного кода, ситуация не проясняется.</p>
+
+<p>В представленном коде выше, я привел самый простой пример, но в реальных программах, где смешиваются параллельные вычисления и именованные состояния, постоянно возникают значительно более сложные конфликтные ситуации. <br />
+В истории существует печально известный пример ситуации с <em>race condition</em> - это канадский аппарат лучевой терапии <a href="https://ru.wikipedia.org/wiki/Therac-25"><em>Therac-25</em></a>, который из-за подобного бага в своем софте выдавал пациентам дозы, в тысячи раз превышающие назначенные, что приводило к смертям и тяжёлым заболеваниям. Одна и та же переменная в этом аппарате использовалась сразу в двух вычислительных задачах, которые могли выполняться одновременно.</p>
+
+<p>Из всего выше изложенного следует вывод: <em>по возможности не использовать вместе параллелизм и именованные состояния</em>. Программу практически всегда можно спроектировать так, чтобы разделить эти аспекты, или, в самом крайнем случае, ограниченно и наглядно совместить их в небольшой и хорошо изолированной части проекта.</p>
+
+<p>Однако, существуют способы организовать программу таким образом, что одновременное использование параллелизма и именованных состояний будет давать корректный результат и в целом такая схема остается вполне применимой. Наверное, одним из самых известных и хороших способов правильно организовать программирование с параллелизмом и состоянием - это использовать <strong>атомарные операции</strong>.</p>
+
+<p><em>Атомарная операция</em>, как бы, инкапсулирует внутри себя некоторые инструкции кода, и делает их неделимыми во времени. То есть, мы имеем начало атомарной операции и сразу результат, а промежуточные состояния внутри атомарной операции нам недоступны.<br />
+Поэтому одним из способов борьбы с <em>race conditions</em> является организация потоково-безопасной (thread-safe) работы программы. Программисту предоставляется механизм атомарного выполнения- набор действий над общей переменной объявляется некоторому потоку атомарным, и пока он полностью не закончится, никакой другой поток не сможет работать с этой переменной.<br />
+С помощью атомарных операций мы можем решить вышеприведённую проблему с неверным итоговым изменением переменной <strong><code class="highlighter-rouge">a</code></strong> в нескольких потоках. Идея заключается в том, чтобы обеспечить такой режим работы, когда тело каждого потока будет атомарным.</p>
+
+<p>Рассмотрим следующий псевдокод:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>thread A
+a = 0
+запуск thread B
+начало атомарной операции
+a = a + 1
+конец атомарной операции
+ожидание окончания работы thread B
+print a
+
+thread B
+начало атомарной операции
+a = a + 2
+конец атомарной операции
+</code></pre></div></div>
+<p>В результате на консоль всегда будет выводиться 3.</p>
+
+<p>В различных языках программирования атомарные операции представлены по-разному. Например, в Python данные операции можно реализовать с помощью <em>блокировок</em> (Lock). 
+Класс <strong><code class="highlighter-rouge">RLock</code></strong> – это блокировка (или замок).<br />
+<em>Блокировка</em> -  фундаментальный механизм синхронизации, который предоставлен модулем <code class="highlighter-rouge">threading</code> в Python.  <br />
+Замки используются для синхронизации доступа к общим ресурсам. Для каждого такого источника создается объект <code class="highlighter-rouge">Lock</code>. Когда нам нужно получить доступ к общему ресурсу, мы вызываем <code class="highlighter-rouge">acquire</code> для того, чтобы поставить блок на время работы потока с данным ресурсом, после чего вызываем <code class="highlighter-rouge">release</code>, тем самым открывая доступ к общему ресурсу:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span> 
+<span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">()</span> <span class="c1"># Выполнит блокировку данного участка кода
+</span><span class="o">...</span> <span class="c1">#доступ к общим ресурсам
+</span><span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span> <span class="c1"># Снятие блокировки 
+</span></code></pre></div></div>
+
+<p>В любом случае во избежание ситуации <em>race condition</em>, при организации параллельных вычислений всегда необходимо обеспечивать атомарность операций, насколько это возможно.</p>
+
+<p>В следующей статье мы поговорим о еще одной ключевой концепции программирования – <strong>абстракции данных</strong>.</p>
+
+
+</article>
+
+
+
+
+<aside class="related">
+  <h3>История постов</h3>
+  <ul class="related-posts">
+    
+      <li>
+        <a href="/2021/04/09/programming-universe8/">
+          Вселенная программирования. Ключевые концепции ч5 - Абстракция данных.
+          <small><time datetime="2021-04-09T00:00:00+03:00">09 Apr 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/04/05/programming-universe7/">
+          Вселенная программирования. Ключевые концепции ч4 - Темная сторона параллелизма.
+          <small><time datetime="2021-04-05T00:00:00+03:00">05 Apr 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/03/25/programming-universe6/">
+          Вселенная программирования. Ключевые концепции ч3 - Параллелизм.
+          <small><time datetime="2021-03-25T00:00:00+03:00">25 Mar 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/02/15/programming-universe5/">
+          Вселенная программирования. Ключевые концепции ч2 - Замыкания.
+          <small><time datetime="2021-02-15T00:00:00+03:00">15 Feb 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/02/02/programming-universe4/">
+          Вселенная программирования. Ключевые концепции ч1.
+          <small><time datetime="2021-02-02T00:00:00+03:00">02 Feb 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/01/26/programming-universe3/">
+          Вселенная программирования. Вычислительные модели – основные характеристики.
+          <small><time datetime="2021-01-26T00:00:00+03:00">26 Jan 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/01/10/programming-universe2/">
+          Вселенная программирования. Глобальный взгляд на проектирование.
+          <small><time datetime="2021-01-10T00:00:00+03:00">10 Jan 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/12/25/programming-universe1/">
+          Вселенная программирования. Введение.
+          <small><time datetime="2020-12-25T00:00:00+03:00">25 Dec 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/15/imperativ_programm_function-call2/">
+          Императивное программирование. Вызов функций ч2.
+          <small><time datetime="2020-11-15T00:00:00+03:00">15 Nov 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/11/imperativ_programm_function-call/">
+          Императивное программирование. Вызов функций, нити исполнения кода.
+          <small><time datetime="2020-11-11T00:00:00+03:00">11 Nov 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/09/18/TG-bot-heroku-deploy/">
+          Питонячий Телеграм-Бот, Yandex-API и диплой на Heroku.
+          <small><time datetime="2020-09-18T00:00:00+03:00">18 Sep 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/07/28/FP-base-structs/">
+          Функциональное программирование. Элементарные конструкции.
+          <small><time datetime="2020-07-28T00:00:00+03:00">28 Jul 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/07/04/Functional-programming/">
+          Функциональное программирование. Другой взгляд на мир.
+          <small><time datetime="2020-07-04T00:00:00+03:00">04 Jul 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/06/14/Django-button_admin/">
+          Django. Своя кнопка в админке.
+          <small><time datetime="2020-06-14T00:00:00+03:00">14 Jun 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/05/28/Django-timezone/">
+          Django. Время поговорить о времени.
+          <small><time datetime="2020-05-28T00:00:00+03:00">28 May 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/05/08/Django-commands_and_pagination-%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F/">
+          Django. Пользовательские команды и Пагинация.
+          <small><time datetime="2020-05-08T00:00:00+03:00">08 May 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/20/Django-scrf/">
+          Django. Немного о SCRF.
+          <small><time datetime="2020-04-20T00:00:00+03:00">20 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/15/Django-authorization/">
+          Django. Авторизация и ограничение доступа.
+          <small><time datetime="2020-04-15T00:00:00+03:00">15 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/13/Django-create-rest-api/">
+          Django. Быстро прикручиваем REST API к проекту.
+          <small><time datetime="2020-04-13T00:00:00+03:00">13 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/12/Django-REST/">
+          Django. Знакомство с REST.
+          <small><time datetime="2020-04-12T00:00:00+03:00">12 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/01/Django-stop-control/">
+          Django. Стоп, контроль!
+          <small><time datetime="2020-04-01T00:00:00+03:00">01 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/03/25/Django/">
+          Django, приятно познакомиться.
+          <small><time datetime="2020-03-25T00:00:00+03:00">25 Mar 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/02/17/go-to-stage-down/">
+          Идем в машинное отделение.
+          <small><time datetime="2020-02-17T00:00:00+03:00">17 Feb 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/01/23/start-point/">
+          Точка старта. Когда ты понимаешь, что твои знания равны нулю)
+          <small><time datetime="2020-01-23T00:00:00+03:00">23 Jan 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2019/12/26/blog-building/">
+          Pages.GitHub и Jekyll
+          <small><time datetime="2019-12-26T00:00:00+03:00">26 Dec 2019</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2019/12/25/my_first_steps/">
+          Мой Блог. Начало.
+          <small><time datetime="2019-12-25T00:00:00+03:00">25 Dec 2019</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+      </main>
+	  
+	
+  
+
+      <footer class="footer">
+        <small><font style="color: gray; font-size: 16px; font-family: Arial">
+		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
+		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
+		  &copy; <time datetime="2021-04-10T12:54:03+03:00">2021</time>
+		</font>  
+		  
+        </small>
+      </footer>
+    </div>
+
+    
+  </body>
+</html>

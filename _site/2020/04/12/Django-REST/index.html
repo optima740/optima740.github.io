@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+ 
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      Django. Знакомство с REST. &middot; AndreyMelnikov.MyBlog
+    
+  </title>
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/apple-touch-icon-precomposed.ico" type="image/vnd.microsoft.icon">
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?">
+  <link rel="alternate" type="application/atom+xml" title="AndreyMelnikov.MyBlog" href="/atom.xml">
+
+
+  <!-- Begin Jekyll SEO tag v2.6.1 -->
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Django. Знакомство с REST." />
+<meta name="author" content="Andrey Melnikov" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="http://localhost:4000/2020/04/12/Django-REST/" />
+<meta property="og:url" content="http://localhost:4000/2020/04/12/Django-REST/" />
+<meta property="og:site_name" content="AndreyMelnikov.MyBlog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-04-12T00:00:00+03:00" />
+<script type="application/ld+json">
+{"headline":"Django. Знакомство с REST.","dateModified":"2020-04-12T00:00:00+03:00","datePublished":"2020-04-12T00:00:00+03:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/04/12/Django-REST/"},"url":"http://localhost:4000/2020/04/12/Django-REST/","author":{"@type":"Person","name":"Andrey Melnikov"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+
+  <body>
+	<table>
+	<p></p>
+	</table>
+    <div class="container content">
+	
+      <header class="masthead">
+        <h3 class="masthead-title">
+          <a href="/" title="Home">AndreyMelnikov.MyBlog</a>
+          <small>   # мой блог: IT-марафон.</small>
+        </h3>
+		<p><img src="/image/my_avatar.jpeg"</p>
+      </header>
+
+      <main>
+        <article class="post">
+  <h1 class="post-title">Django. Знакомство с REST.</h1>
+  <time datetime="2020-04-12T00:00:00+03:00" class="post-date">12 Apr 2020</time>
+  <p><img src="/image/post-2020-04-12/rest_api.jpg" alt="" /></p>
+
+<p>На сегодняшний день всемирная сеть интернет использует модель “клиент-серверного” взаимодействия. Клиент отправляет запрос — сервер ему отвечает. Общение браузеров и веб-сайтов (первые выступают в роли клиента, а вторые в роли сервера) происходило при помощи html-рендеринга, и HTTP протокола.</p>
+
+<p>Чтобы получить данные с веб-сайта, браузер отправляет запрос GET к серверу. Сервер формирует ответ в виде html-страницы и передает ее браузеру. В этой самой html-странице сервер заложил все необходимые веб-формы, заполнив которые, пользователь мог бы передать свои данные обратно на сервер. Когда мы ввели свои данные в форму на сайте, браузер отправляет серверу запрос POST, в котором содержатся наши данные, а сервер обрабатывает их и записывает в базу данных.<br />
+Но, с течением времени такая схема взаимодействия перестала удовлетворять постоянно растущие требования к веб-разработке. Интернет проникает в нашу жизнь все глубже и глубже. Интеграция с всемирной сетью происходит все сильнее. На данный момент емкость протокола IPv4 исчерпана. На смену ему приходит IPv6, что говорит о том, что в будущем, практически, каждая лампочка может иметь свой собственный IP-адрес и подключаться к интернет (internet of things, IoT).<br />
+Итак, появление мобильных приложений, различных устройств с доступом в интернет, привело к тому, что для них уже не подходил стандартный способ html-рендеринга на сервере, ведь теперь каждому клиенту нужно было отрисовать данные по-своему.</p>
+
+<p>Для всех этих задач есть другой способ обмена данными — Web <strong>API</strong> (Application Programming Interface). Смысл этого способа в том, что сервер передает клиенту не html-страницу, а непосредственно данные, никак не влияя на то, как эти данные будут в итоге представлены. Наиболее популярными форматами для передачи данных становятся XML и JSON. Таким образом, сервер полностью избавляется от задачи отрисовки данных. Постепенно Web API стал приобретать все большую популярность. Этому способствовало быстрое развитие инструментов на языке JavaScript, а также появление различных веб-фреймворков.<br />
+Браузерные приложения научились отрисовывать веб-страницы самостоятельно, получая чистые данные с сервера. Веб-приложения на сервере научились создавать API быстро и легко. Так сформировалась четкое разделение на <strong>Backend</strong> и <strong>Frontend</strong> разработку: тех, кто поддерживает приложение на сервере, и тех, кто делает браузерные (клиентские) приложения. А Web API стал универсальным способом общения для сервера и всех его клиентов (браузеров, мобильных приложений, других серверов).<br />
+Со временем становилось понятно, что необходим некий стандарт, который охватит все тонкости в общении между компонентами (как передавать данные, в каком формате, как сообщать об ошибках), ведь на простых договоренностях между разработчиками далеко не уедешь. И таким стандартом стала архитектурная модель взаимодействия компонентов – REST.</p>
+
+<p>Representational State Transfer (<strong>REST</strong>) для управления данными использует привязку к стандартным методам HTTP-протокола. Существует несколько стандартных действий для работы с данными — это Create, Read, Update, Delete (CRUD).</p>
+
+<p>• Create - соответствует HTTP методу POST<br />
+• Read — соответствует HTTP методу GET<br />
+• Update — соответствует HTTP методу PUT<br />
+• Delete — соответствует HTTP методу DELETE</p>
+
+<p>На сегодняшний день, наверное, каждый язык программирования для веб-разработки имеет в своем арсенале фреймворк REST-API.
+REST не обошел стороной и Django. Благодаря чему на сегодняшний день мы имеем библиотеку Django REST Framework, подключаемую при помощи:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pip</span> <span class="n">install</span> <span class="n">djangorestframework</span>
+</code></pre></div></div>
+
+<p><img src="/image/post-2020-04-12/rest.gif" alt="" /></p>
+
+<p><code class="highlighter-rouge">В написании данной статьи использовались материалы из источника: https://mkdev.me/posts/chto-takoe-django-rest-framework</code></p>
+
+
+</article>
+
+
+
+
+<aside class="related">
+  <h3>История постов</h3>
+  <ul class="related-posts">
+    
+      <li>
+        <a href="/2021/04/09/programming-universe8/">
+          Вселенная программирования. Ключевые концепции ч5 - Абстракция данных.
+          <small><time datetime="2021-04-09T00:00:00+03:00">09 Apr 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/04/05/programming-universe7/">
+          Вселенная программирования. Ключевые концепции ч4 - Темная сторона параллелизма.
+          <small><time datetime="2021-04-05T00:00:00+03:00">05 Apr 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/03/25/programming-universe6/">
+          Вселенная программирования. Ключевые концепции ч3 - Параллелизм.
+          <small><time datetime="2021-03-25T00:00:00+03:00">25 Mar 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/02/15/programming-universe5/">
+          Вселенная программирования. Ключевые концепции ч2 - Замыкания.
+          <small><time datetime="2021-02-15T00:00:00+03:00">15 Feb 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/02/02/programming-universe4/">
+          Вселенная программирования. Ключевые концепции ч1.
+          <small><time datetime="2021-02-02T00:00:00+03:00">02 Feb 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/01/26/programming-universe3/">
+          Вселенная программирования. Вычислительные модели – основные характеристики.
+          <small><time datetime="2021-01-26T00:00:00+03:00">26 Jan 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/01/10/programming-universe2/">
+          Вселенная программирования. Глобальный взгляд на проектирование.
+          <small><time datetime="2021-01-10T00:00:00+03:00">10 Jan 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/12/25/programming-universe1/">
+          Вселенная программирования. Введение.
+          <small><time datetime="2020-12-25T00:00:00+03:00">25 Dec 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/15/imperativ_programm_function-call2/">
+          Императивное программирование. Вызов функций ч2.
+          <small><time datetime="2020-11-15T00:00:00+03:00">15 Nov 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/11/imperativ_programm_function-call/">
+          Императивное программирование. Вызов функций, нити исполнения кода.
+          <small><time datetime="2020-11-11T00:00:00+03:00">11 Nov 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/09/18/TG-bot-heroku-deploy/">
+          Питонячий Телеграм-Бот, Yandex-API и диплой на Heroku.
+          <small><time datetime="2020-09-18T00:00:00+03:00">18 Sep 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/07/28/FP-base-structs/">
+          Функциональное программирование. Элементарные конструкции.
+          <small><time datetime="2020-07-28T00:00:00+03:00">28 Jul 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/07/04/Functional-programming/">
+          Функциональное программирование. Другой взгляд на мир.
+          <small><time datetime="2020-07-04T00:00:00+03:00">04 Jul 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/06/14/Django-button_admin/">
+          Django. Своя кнопка в админке.
+          <small><time datetime="2020-06-14T00:00:00+03:00">14 Jun 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/05/28/Django-timezone/">
+          Django. Время поговорить о времени.
+          <small><time datetime="2020-05-28T00:00:00+03:00">28 May 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/05/08/Django-commands_and_pagination-%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F/">
+          Django. Пользовательские команды и Пагинация.
+          <small><time datetime="2020-05-08T00:00:00+03:00">08 May 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/20/Django-scrf/">
+          Django. Немного о SCRF.
+          <small><time datetime="2020-04-20T00:00:00+03:00">20 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/15/Django-authorization/">
+          Django. Авторизация и ограничение доступа.
+          <small><time datetime="2020-04-15T00:00:00+03:00">15 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/13/Django-create-rest-api/">
+          Django. Быстро прикручиваем REST API к проекту.
+          <small><time datetime="2020-04-13T00:00:00+03:00">13 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/12/Django-REST/">
+          Django. Знакомство с REST.
+          <small><time datetime="2020-04-12T00:00:00+03:00">12 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/01/Django-stop-control/">
+          Django. Стоп, контроль!
+          <small><time datetime="2020-04-01T00:00:00+03:00">01 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/03/25/Django/">
+          Django, приятно познакомиться.
+          <small><time datetime="2020-03-25T00:00:00+03:00">25 Mar 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/02/17/go-to-stage-down/">
+          Идем в машинное отделение.
+          <small><time datetime="2020-02-17T00:00:00+03:00">17 Feb 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/01/23/start-point/">
+          Точка старта. Когда ты понимаешь, что твои знания равны нулю)
+          <small><time datetime="2020-01-23T00:00:00+03:00">23 Jan 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2019/12/26/blog-building/">
+          Pages.GitHub и Jekyll
+          <small><time datetime="2019-12-26T00:00:00+03:00">26 Dec 2019</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2019/12/25/my_first_steps/">
+          Мой Блог. Начало.
+          <small><time datetime="2019-12-25T00:00:00+03:00">25 Dec 2019</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+      </main>
+	  
+	
+  
+
+      <footer class="footer">
+        <small><font style="color: gray; font-size: 16px; font-family: Arial">
+		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
+		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
+		  &copy; <time datetime="2021-04-10T12:54:03+03:00">2021</time>
+		</font>  
+		  
+        </small>
+      </footer>
+    </div>
+
+    
+  </body>
+</html>

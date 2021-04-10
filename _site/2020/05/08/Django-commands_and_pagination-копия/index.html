@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+ 
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>
+    
+      Django. Пользовательские команды и Пагинация. &middot; AndreyMelnikov.MyBlog
+    
+  </title>
+
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/assets/apple-touch-icon-precomposed.ico" type="image/vnd.microsoft.icon">
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?">
+  <link rel="alternate" type="application/atom+xml" title="AndreyMelnikov.MyBlog" href="/atom.xml">
+
+
+  <!-- Begin Jekyll SEO tag v2.6.1 -->
+<meta name="generator" content="Jekyll v4.0.0" />
+<meta property="og:title" content="Django. Пользовательские команды и Пагинация." />
+<meta name="author" content="Andrey Melnikov" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="http://localhost:4000/2020/05/08/Django-commands_and_pagination-%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F/" />
+<meta property="og:url" content="http://localhost:4000/2020/05/08/Django-commands_and_pagination-%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F/" />
+<meta property="og:site_name" content="AndreyMelnikov.MyBlog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-05-08T00:00:00+03:00" />
+<script type="application/ld+json">
+{"headline":"Django. Пользовательские команды и Пагинация.","dateModified":"2020-05-08T00:00:00+03:00","datePublished":"2020-05-08T00:00:00+03:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/2020/05/08/Django-commands_and_pagination-%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F/"},"url":"http://localhost:4000/2020/05/08/Django-commands_and_pagination-%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F/","author":{"@type":"Person","name":"Andrey Melnikov"},"@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+
+  <body>
+	<table>
+	<p></p>
+	</table>
+    <div class="container content">
+	
+      <header class="masthead">
+        <h3 class="masthead-title">
+          <a href="/" title="Home">AndreyMelnikov.MyBlog</a>
+          <small>   # мой блог: IT-марафон.</small>
+        </h3>
+		<p><img src="/image/my_avatar.jpeg"</p>
+      </header>
+
+      <main>
+        <article class="post">
+  <h1 class="post-title">Django. Пользовательские команды и Пагинация.</h1>
+  <time datetime="2020-05-08T00:00:00+03:00" class="post-date">08 May 2020</time>
+  <p><img src="/image/post-2020-05-08/head.jpg" alt="" /></p>
+
+<p>В Django имеется функционал создания своих собственных пользовательских консольных команд для администрирования проекта.</p>
+
+<p>Давайте рассмотрим пример создания такой команды, применительно к нашему учебному проекту с автопредприятиями. Наша команда будет генерировать указанное количество автомобилей применительно к предприятию (или списка предприятий), которое также будет указываться в параметрах команды.</p>
+
+<p>Для этого создадим каталог <code class="highlighter-rouge">management</code> в основном каталоге проекта (на уровне каталогов <code class="highlighter-rouge">static</code> и <code class="highlighter-rouge">аpi</code>). В management создадим подкаталог <code class="highlighter-rouge">commands</code> и уже непосредственно в нем будем создавать наши команды. Для того чтобы Python учитывал каталог <code class="highlighter-rouge">commands</code>, как свой пакет, необходимо добавить пустой файл <code class="highlighter-rouge">__init__.py</code>. Для получения пользовательской команды достаточно создать питоновский файл с таким-же именем, как и у предполагаемой команды. Например, для команды генерирующей наши машинки – <code class="highlighter-rouge">gencar</code>, мы создаем <code class="highlighter-rouge">gencar.py</code>.</p>
+
+<p>Создадим класс команды - <code class="highlighter-rouge">Command</code> , наследованный от класса <code class="highlighter-rouge">BaseCommand</code>, который предоставляется фреймворком:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">django.core.management.base</span> <span class="kn">import</span> <span class="n">BaseCommand</span>
+<span class="kn">from</span> <span class="nn">django.utils.crypto</span> <span class="kn">import</span> <span class="n">get_random_string</span>
+<span class="kn">from</span> <span class="nn">rest_framework.generics</span> <span class="kn">import</span> <span class="n">get_object_or_404</span>
+<span class="kn">from</span> <span class="nn">...models</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+    <span class="c1"># Задаём текст помощи, который будет отображён при выполнении команды
+</span>    <span class="c1"># python manage.py gencars --help
+</span>    <span class="n">help</span> <span class="o">=</span> <span class="s">u'Generate cars. Создание моделей Car со случайным содержанием полей'</span>
+
+    <span class="k">def</span> <span class="nf">add_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser</span><span class="p">):</span>
+    <span class="c1"># Указываем сколько и каких аргументов принимает команда.
+</span>    <span class="c1"># В данном случае первый аргументом идет id предприятия, nargs='+' - минимум один аргумент, либо список.
+</span>    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">'-e'</span><span class="p">,</span> <span class="s">'--enterprise_id'</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s">'+'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s">u'Для какого предприятия(либо список enterprise_id через пробел)'</span><span class="p">)</span>
+    <span class="c1"># Вторым аргументом передаем число
+</span>    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s">'-n'</span><span class="p">,</span> <span class="s">'--number'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s">u'Количество создаваемых Car'</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
+        <span class="c1"># Получаем аргументы:
+</span>        <span class="n">enterprise_id</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s">'enterprise_id'</span><span class="p">]</span>
+        <span class="n">number_cars</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="s">'number'</span><span class="p">]</span>
+        <span class="c1"># enterprise_id - возможно список, по этому итерируемся сначала по нему.
+</span>        <span class="k">for</span> <span class="n">enterprise</span> <span class="ow">in</span> <span class="n">enterprise_id</span><span class="p">:</span>
+            <span class="n">of_enterprise</span> <span class="o">=</span> <span class="n">get_object_or_404</span><span class="p">(</span><span class="n">Enterprise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">all</span><span class="p">(),</span> <span class="n">pk</span><span class="o">=</span><span class="n">enterprise</span><span class="p">)</span>
+            <span class="c1"># Создаем число машинок = number_cars
+</span>            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_cars</span><span class="p">):</span>
+                <span class="n">brand</span> <span class="o">=</span> <span class="n">get_random_string</span><span class="p">()</span> <span class="c1"># случайная генерация строки для поля Car
+</span>                <span class="n">model</span> <span class="o">=</span> <span class="n">get_random_string</span><span class="p">()</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="n">get_random_string</span><span class="p">()</span>
+                <span class="c1"># Непосредственно, создание модели типа Car, с указанными полями
+</span>                <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">brand</span><span class="o">=</span><span class="n">brand</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">fuel_util</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">of_enterprise</span><span class="o">=</span><span class="n">of_enterprise</span><span class="p">)</span>
+	<span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'Successfully created {0} cars!'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">number_cars</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">'Current list cars: {}'</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">all</span><span class="p">())))</span>
+</code></pre></div></div>
+<p><code class="highlighter-rouge">add_arguments()</code>- в данной функции мы определяем сколько и каких аргументов будет передано в команду. В нашем случае мы используем два параметра:</p>
+
+<p><code class="highlighter-rouge">-e</code> (enterprise), где указываем id предприятия, к которому будет привязана созданная машинка, или список id предприятий.</p>
+
+<p><code class="highlighter-rouge">-n</code> (number) – задает количество моделей для генерации (сколько машинок будет создано).</p>
+
+<p><code class="highlighter-rouge">handle()</code> – переопределяя эту функцию, мы задаем обработку переданных параметров, и дальнейшую логику действий по реализации семантики нашей команды. Все аргументы приходят в списке (options). Также в данной функции для генерации случайного текста мы использовали метод <code class="highlighter-rouge">get_random_string()</code>, импортированного из <code class="highlighter-rouge">django.utils.crypto</code>. <br />
+Далее, если мы введем в командной строке:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python manage.py gencar –e 1 –n 10
+</code></pre></div></div>
+<p>у нас создастся 10 машинок прикрепленный к предприятию с id 1.</p>
+
+<p>Также мы можем создать, например, по 50 машинок для предприятия с id 1 и id 2:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python manage.py gencar –e 1 2 –n 50
+</code></pre></div></div>
+<p>Теперь у нас появилась возможность массово создавать модели Car со случайным значением полей. Но как быть с отображением? Напомню, что сейчас список объектов Car отображается вот так:</p>
+
+<p><img src="/image/post-2020-05-08/no_paginations.jpg" alt="" /> <br />
+Что будет, если мы создадим, скажем, 5000 машинок? В данном случае необходимо реализовать постраничное отображение – пагинацию.</p>
+
+<p><strong>Пагинация</strong> – это разбиение на страницы или постраничная нумерация. В Django REST фреймворке есть стандартные классы для реализации данного функционала. Я опишу самый простой способ сделать это в рамках REST фреймворка.</p>
+
+<p>Для начала укажем в глобальных настройках нашего проекта (<code class="highlighter-rouge">settings.py</code>) класс, который будет использоваться для пагинации по умолчанию:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">REST_FRAMEWORK</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># глобальная настройка для стиля пагинации с указанием количества элементов на странице PAGE_SIZE
+</span>    <span class="s">'DEFAULT_PAGINATION_CLASS'</span><span class="p">:</span> <span class="s">'rest_framework.pagination.LimitOffsetPagination'</span><span class="p">,</span>
+    <span class="s">'PAGE_SIZE'</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><code class="highlighter-rouge">'PAGE_SIZE'</code>- определяет количество элементов на одной странице.</p>
+
+<p>Далее в нашем файле с представлением (api\view.py) переопределим поле <code class="highlighter-rouge">pagination_class = LimitOffsetPagination</code></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CarView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">ListCreateAPIView</span><span class="p">):</span>
+    <span class="c1"># представление для списка авто с методами create и get
+</span>    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">CarSerializer</span>
+    <span class="n">pagination_class</span> <span class="o">=</span> <span class="n">LimitOffsetPagination</span>
+
+</code></pre></div></div>
+<p>Также, необходимо добавить логику в наш метод get():</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+    <span class="c1"># переопределяем родительский метод для получения запроса GET
+</span>    <span class="n">queryset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_queryset</span><span class="p">()</span>
+    <span class="n">serializer</span> <span class="o">=</span> <span class="n">CarSerializer</span><span class="p">(</span><span class="n">queryset</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">paginate_queryset</span><span class="p">(</span><span class="n">queryset</span><span class="p">)</span> <span class="c1"># формируем данные для отображения на одной странице
+</span>    <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">serializer</span> <span class="o">=</span> <span class="n">CarSerializer</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c1"># сериализуем данные page
+</span>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_paginated_response</span><span class="p">(</span><span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Response</span><span class="p">({</span><span class="s">"cars"</span><span class="p">:</span> <span class="n">serializer</span><span class="o">.</span><span class="n">data</span><span class="p">})</span>
+</code></pre></div></div>
+<p>Тут мы создаем экземпляр класса нашего пагинатора, передаем ему результат запроса (queryset). Объект <code class="highlighter-rouge">page</code> – будет являться набором данных для одной страницы. Далее мы через сериализацию выводим данные.</p>
+
+<p>Как можно увидеть, теперь у нас есть постраничное отображение списка Car:</p>
+
+<p><img src="/image/post-2020-05-08/paginations.jpg" alt="" /></p>
+
+
+</article>
+
+
+
+
+<aside class="related">
+  <h3>История постов</h3>
+  <ul class="related-posts">
+    
+      <li>
+        <a href="/2021/04/09/programming-universe8/">
+          Вселенная программирования. Ключевые концепции ч5 - Абстракция данных.
+          <small><time datetime="2021-04-09T00:00:00+03:00">09 Apr 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/04/05/programming-universe7/">
+          Вселенная программирования. Ключевые концепции ч4 - Темная сторона параллелизма.
+          <small><time datetime="2021-04-05T00:00:00+03:00">05 Apr 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/03/25/programming-universe6/">
+          Вселенная программирования. Ключевые концепции ч3 - Параллелизм.
+          <small><time datetime="2021-03-25T00:00:00+03:00">25 Mar 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/02/15/programming-universe5/">
+          Вселенная программирования. Ключевые концепции ч2 - Замыкания.
+          <small><time datetime="2021-02-15T00:00:00+03:00">15 Feb 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/02/02/programming-universe4/">
+          Вселенная программирования. Ключевые концепции ч1.
+          <small><time datetime="2021-02-02T00:00:00+03:00">02 Feb 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/01/26/programming-universe3/">
+          Вселенная программирования. Вычислительные модели – основные характеристики.
+          <small><time datetime="2021-01-26T00:00:00+03:00">26 Jan 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2021/01/10/programming-universe2/">
+          Вселенная программирования. Глобальный взгляд на проектирование.
+          <small><time datetime="2021-01-10T00:00:00+03:00">10 Jan 2021</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/12/25/programming-universe1/">
+          Вселенная программирования. Введение.
+          <small><time datetime="2020-12-25T00:00:00+03:00">25 Dec 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/15/imperativ_programm_function-call2/">
+          Императивное программирование. Вызов функций ч2.
+          <small><time datetime="2020-11-15T00:00:00+03:00">15 Nov 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/11/11/imperativ_programm_function-call/">
+          Императивное программирование. Вызов функций, нити исполнения кода.
+          <small><time datetime="2020-11-11T00:00:00+03:00">11 Nov 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/09/18/TG-bot-heroku-deploy/">
+          Питонячий Телеграм-Бот, Yandex-API и диплой на Heroku.
+          <small><time datetime="2020-09-18T00:00:00+03:00">18 Sep 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/07/28/FP-base-structs/">
+          Функциональное программирование. Элементарные конструкции.
+          <small><time datetime="2020-07-28T00:00:00+03:00">28 Jul 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/07/04/Functional-programming/">
+          Функциональное программирование. Другой взгляд на мир.
+          <small><time datetime="2020-07-04T00:00:00+03:00">04 Jul 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/06/14/Django-button_admin/">
+          Django. Своя кнопка в админке.
+          <small><time datetime="2020-06-14T00:00:00+03:00">14 Jun 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/05/28/Django-timezone/">
+          Django. Время поговорить о времени.
+          <small><time datetime="2020-05-28T00:00:00+03:00">28 May 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/05/08/Django-commands_and_pagination-%D0%BA%D0%BE%D0%BF%D0%B8%D1%8F/">
+          Django. Пользовательские команды и Пагинация.
+          <small><time datetime="2020-05-08T00:00:00+03:00">08 May 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/20/Django-scrf/">
+          Django. Немного о SCRF.
+          <small><time datetime="2020-04-20T00:00:00+03:00">20 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/15/Django-authorization/">
+          Django. Авторизация и ограничение доступа.
+          <small><time datetime="2020-04-15T00:00:00+03:00">15 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/13/Django-create-rest-api/">
+          Django. Быстро прикручиваем REST API к проекту.
+          <small><time datetime="2020-04-13T00:00:00+03:00">13 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/12/Django-REST/">
+          Django. Знакомство с REST.
+          <small><time datetime="2020-04-12T00:00:00+03:00">12 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/04/01/Django-stop-control/">
+          Django. Стоп, контроль!
+          <small><time datetime="2020-04-01T00:00:00+03:00">01 Apr 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/03/25/Django/">
+          Django, приятно познакомиться.
+          <small><time datetime="2020-03-25T00:00:00+03:00">25 Mar 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/02/17/go-to-stage-down/">
+          Идем в машинное отделение.
+          <small><time datetime="2020-02-17T00:00:00+03:00">17 Feb 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2020/01/23/start-point/">
+          Точка старта. Когда ты понимаешь, что твои знания равны нулю)
+          <small><time datetime="2020-01-23T00:00:00+03:00">23 Jan 2020</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2019/12/26/blog-building/">
+          Pages.GitHub и Jekyll
+          <small><time datetime="2019-12-26T00:00:00+03:00">26 Dec 2019</time></small>
+        </a>
+      </li>
+    
+      <li>
+        <a href="/2019/12/25/my_first_steps/">
+          Мой Блог. Начало.
+          <small><time datetime="2019-12-25T00:00:00+03:00">25 Dec 2019</time></small>
+        </a>
+      </li>
+    
+  </ul>
+</aside>
+
+      </main>
+	  
+	
+  
+
+      <footer class="footer">
+        <small><font style="color: gray; font-size: 16px; font-family: Arial">
+		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
+		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
+		  &copy; <time datetime="2021-04-10T12:54:03+03:00">2021</time>
+		</font>  
+		  
+        </small>
+      </footer>
+    </div>
+
+    
+  </body>
+</html>
