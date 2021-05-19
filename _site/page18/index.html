@@ -28,7 +28,7 @@
 <link rel="prev" href="http://localhost:4000/page17" />
 <link rel="next" href="http://localhost:4000/page19" />
 <script type="application/ld+json">
-{"headline":"Home","@type":"WebPage","url":"http://localhost:4000/page18/","author":{"@type":"Person","name":"Andrey Melnikov"},"@context":"https://schema.org"}</script>
+{"@type":"WebPage","url":"http://localhost:4000/page18/","author":{"@type":"Person","name":"Andrey Melnikov"},"headline":"Home","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -53,78 +53,47 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/2020/04/15/Django-authorization/">
-        Django. Авторизация и ограничение доступа.
+      <a href="/2020/04/20/Django-scrf/">
+        Django. Немного о SCRF.
       </a>
     </h1>
 
-    <time datetime="2020-04-15T00:00:00+03:00" class="post-date">15 Apr 2020</time>
+    <time datetime="2020-04-20T00:00:00+03:00" class="post-date">20 Apr 2020</time>
 
-    <p><img src="/image/post-2020-04-15/zamok1.jpg" alt="" /></p>
+    <p><img src="/image/post-2020-04-20/csrf.jpg" alt="" /></p>
 
-<p>Как мы уже ранее говорили, <strong>Аутентификация</strong> — это процесс подтверждения, что пользователь именно тот, за кого себя выдает, то есть, процесс сопоставления переданных данных от пользователя с существующими учетными данными в БД. <br />
-<strong>Авторизация</strong> — это процесс принятия решения о том, что именно этой аутентифицированной персоне разрешается делать, то есть, назначение прав пользователю для разграничения доступа к ресурсам. И, как раз, об ограничении доступа сегодня и пойдет речь.</p>
+<p><strong>Cross-Site Request Forgery</strong> – если адаптировать на русский язык, то получается что-то вроде межсайтовая подделка запроса. Суть данной атаки в том, что браузер не может различить, было ли действие выполнено пользователем умышленно (например, переход по ссылке или нажатие на кнопку отправки формы на целевой ресурс), или пользователь выполнил действие не умышленно (например, при посещении ресурса-злоумышленника, этот ресурс отправил запрос от имени пользователя на целевой ресурс, на котором пользователь остался «залогиненым»). <br />
+Получается, что ресурс-злоумышленник, вклинившись между пользователем и целевым ресурсом (<strong>cross-site</strong>), может отправить HTTP запрос (<strong>request</strong>), используя авторизированные данные пользователя, и совершить какие-либо действия от имени пользователя на целевом ресурсе (<strong>forgery</strong>).</p>
 
-<p>Допустим в нашем проекте или приложении необходимо разграничить доступ различным пользователям к ресурсам. Например, у нас есть автотранспортные предприятия. У каждого предприятия есть свои сотрудники – пользователи. За каждым предприятием закреплены свои автомобили. Соответственно, мы создали модели предприятий, модели пользователей и модели автомобилей с соответствующими связями между таблицами БД. И нам нужно сделать так, чтобы сотрудник (пользователь) закрепленный за своим предприятием мог получить доступ к списку автомобилей только своего предприятия.<br />
-В данном случае удобно (дабы не изобретать велосипед) использовать стандартный функционал Django «из коробки», а именно использовать стандартный класс <strong>User</strong> для создания моделей сотрудников. Например, наши пользовательские классы <code class="highlighter-rouge">Driver</code> и <code class="highlighter-rouge">Manager</code>, мы сделаем наследниками класса User.</p>
+<p><img src="/image/post-2020-04-20/csrf-attack.jpg" alt="" /><br />
+На сегодня общепринятым методом защиты от подобного рода атак, является использование csrf-токенов. <strong>Токен</strong> - сгенерированный случайным образом сервером ключ, который передается клиенту и возвращается обратно серверу для проверки.
+Своеобразная система «свой» - «чужой».</p>
 
-<p>Ограничение доступа можно cделать на уровне представлений (<code class="highlighter-rouge">views.py</code>). Самый простой способ это реализовать – использовать модуль <code class="highlighter-rouge">django.contrib.auth</code>.<br />
-Тут стоит сделать уточнение, если наше view представляет из себя функцию, то для авторизации следует использовать соответствующий декоратор <code class="highlighter-rouge">@login_required</code>, предварительно импортировав его:</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">django.contrib.auth.decorators</span> <span class="kn">import</span> <span class="n">login_required</span>
+<p>В Django также реализован данный функционал. CSRF защита является частью ядра Django. Кроме того, мы можем использовать декоратор <code class="highlighter-rouge">django.views.decorators.csrf.csrf_protect</code> для обеспечения защиты для конкретных вьюх. <br />
+Django использует механизм csrf protect. Он заключается в том, чтобы отдать токен клиенту двумя методами: в куках и в одном из параметров ответа (header или внутри HTML).<br />
+При запросе клиента на стороне сервера генерится токен. В ответе сервера, токен возвращается в cookie (<code class="highlighter-rouge">X-CSRF-Token</code>) и в одном из параметров ответа (в header или внутри HTML).<br />
+В последующих запросах клиент обязан передать оба,  полученных ранее токена. Один как cookie, другой либо как header, либо внутри POST данных формы. <br />
+При получении запроса от клиента небезопасным методом (POST, PUT, DELETE, PATCH) сервер проверяет на идентичность токен из cookie и токен, который явно прислал клиент.</p>
 
-<span class="o">@</span><span class="n">login_required</span>
-<span class="k">def</span> <span class="nf">my_view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-    
-    <span class="o">...</span>
+<p>Давайте проверим данный механизм при помощи curl. <br />
+<strong>Curl</strong> – кроссплатформенная программа для командной строки. При помощи Curl мы можем взаимодействовать с сервером по различным протоколам. Нас, в частности, интересуют HTTP-запросы. 
+Мы авторизуемся на сайте и попробуем обратиться, используя HTTP-запросы, чтобы получить список автомобилей, ограничение доступа к которому я описывал в предыдущих статьях.<br />
+Для Windows, как для наиболее распространенной платформы, запускаем <code class="highlighter-rouge">cmd.exe</code> от имени админа. Итак, если мы просто отправим POST запрос с данными для авторизации:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -v -d "username=manager&amp;password=1234567" http://127.0.0.1:8000/accounts/login/
 </code></pre></div></div>
-<p>Мы знаем, что декоратор проверяет условие (контракт) до того, как функция, обернутая в этот декоратор, будет выполнена. Поэтому с  <code class="highlighter-rouge">login_required</code> логика следующая:</p>
-
-<p>Если пользователь не авторизован, то будет перенаправлен на URL, указанный в параметре конфигурации <code class="highlighter-rouge">settings.LOGIN_URL</code>, передавая текущий абсолютный путь в запросе. <br />
-Если пользователь авторизован, то выполняет код представления (view). В коде представления не требуется выполнять проверку авторизован ли пользователь или нет.</p>
-
-<p>В случае, если наше представление организовано в виде класса, тогда нам понадобиться соответствующий миксин <code class="highlighter-rouge">LoginRequiredMixin</code>. Импрортируем его из <code class="highlighter-rouge">django.contrib.auth.mixins</code>. Мы должны включить (подмешать) данный миксин в список наследования класса нашего представления. Кроме того, в теле класса мы должны переопределить стандартное поле данного миксина: <code class="highlighter-rouge">raise_exeption = True</code>, для случая, если пользователь не авторизован. Для него будет выброшена ошибка 403.</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">django.contrib.auth.mixins</span> <span class="kn">import</span> <span class="n">LoginRequiredMixin</span>
-
-<span class="k">class</span> <span class="nc">MyView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">generics</span><span class="o">.</span><span class="n">ListAPIView</span><span class="p">):</span>
-	
-    <span class="o">...</span>
-    <span class="n">raise_exception</span> <span class="o">=</span> <span class="bp">True</span>
+<p>В ответ получаем сообщение сервера с кодом 403, а именно <code class="highlighter-rouge">"In general, this can occur when there is a genuine Cross Site Request Forgery, or when"</code>, что говорит нам о не совпадении csrf токена.<br />
+Для того, чтобы сервер понял, что мы «свои» сымитируем действия браузера. Сделаем сначала предварительный GET-запрос, затем сохраним полученный cookie файл, вытащим из него csrf-token и передадим его в повторном POST запросе c данными для авторизации:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -c cookie.txt http://127.0.0.1:8000/accounts/login/
 </code></pre></div></div>
-<p>Логика работы данного миксина (класса) схожа с логикой рассмотренного ранее декоратора:</p>
-
-<p>Если пользователь авторизован, срабатывает редирект на указанный в параметре конфигурации <code class="highlighter-rouge">settings.LOGIN_URL</code>. Иначе, пользователь получает ошибку 403.<br />
-На самом деле, модуль <code class="highlighter-rouge">auth из django.contrib</code> имеет гораздо больший функционал, помимо того, что был описан в данной статье. И его рассмотрение, тема для отдельного поста. Но в рамках сегодняшней задачи, мы достаточно просто и быстро добились необходимого. <br />
-Таким образом, мы добиваемся того, что логика работы view будет ограничена проверкой, является ли пользователь аутентифицированным. Что позволяет нам добиться ограничения выполнения кода внутри view.</p>
-
-<p>Мы описали только половину того, как можно решить нашу задачу. Напомню, нам необходимо, чтобы авторизованный пользователь (например, Manager) получал список именно тех автомобилей, которые принадлежат его предприятию. <br />
-Допустим, текущий пользователь авторизован и код внутри views будет выполнен. Таким образом, нам необходимо отфильтровать для данного авторизованного пользователя те автомобили, которые соответствуют его предприятию.<br />
-Данные о текущем пользователе можно получить из переменной <code class="highlighter-rouge">request</code>, которая автоматически передается при вызове view. Если мы используем функции в качестве представлений, то можно просто указать <code class="highlighter-rouge">request</code> в качестве входного параметра, и обращаться к ней внутри функции:</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">my_view</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
-
-    <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>
-    <span class="o">...</span>
+<p>Подставляем полученный токен из cookie.txt в следующий запрос. В нем мы передаем серверу, как сам cookie, так и поле c токеном:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl --cookie cookie.txt http://127.0.0.1:8000/accounts/login/ -H "X-CSRFToken: owPT8worwO0Bd8AEfqUg1FB2NIPkEQ8DHoJ0kAVPUm1hsSrMS0y0AT7T6qsUNqXa" -b "csrftoken=owPT8worwO0Bd8AEfqUg1FB2NIPkEQ8DHoJ0kAVPUm1hsSrMS0y0AT7T6qsUNqXa" -d "username=manager1&amp;password=Qwertyu_123&amp;next=" -c cookie.txt
 </code></pre></div></div>
-<p>Если в качестве организации наших представлений использованы классы, то придется переопределять родительский метод, для того чтобы получить доступ к <code class="highlighter-rouge">self.request</code>:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">..models</span> <span class="kn">import</span> <span class="n">Car</span><span class="p">,</span> <span class="n">Enterprise</span><span class="p">,</span> <span class="n">User</span><span class="p">,</span> <span class="n">Manager</span>
-
-
-<span class="k">class</span> <span class="nc">CarListView</span><span class="p">(</span><span class="n">LoginRequiredMixin</span><span class="p">,</span> <span class="n">generics</span><span class="o">.</span><span class="n">ListAPIView</span><span class="p">,</span> <span class="n">ListModelMixin</span><span class="p">):</span>
-    <span class="c1"># визуализатор list для модели Car
-</span>    <span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">user_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>
-        <span class="n">enterprise</span> <span class="o">=</span>    <span class="n">Enterprise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">manager__username__contains</span><span class="o">=</span><span class="n">user_name</span><span class="p">)</span>
-        <span class="n">list_car</span> <span class="o">=</span> <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">of_enterprise</span><span class="o">=</span><span class="n">enterprise</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">list_car</span>
-    <span class="n">queryset</span> <span class="o">=</span> <span class="n">get_queryset</span>
-    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">CarSerializer</span>
-    <span class="n">raise_exception</span> <span class="o">=</span> <span class="bp">True</span>  <span class="c1"># переопределение поля исключения, в случае не аутентифицированного пользователя
-</span>
+<p>В этот раз, сервер отвечает уже сообщением 302, что означает редирект. А мы помним, что в механизме авторизации редирект указывается в настройках, как адрес куда нас перенаправят при успешной авторизации. <br />
+Итак, мы успешно авторизовались. Осталось получить список автомобилей. Для этого отправим GET-запрос вместе с cookie:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl --cookie cookie.txt -v http://127.0.0.1:8000/api/cars/
 </code></pre></div></div>
-<p>На примере выше мы переопределили родительский метод <code class="highlighter-rouge">get_queryset</code>. Внутри метода обратились к данным текущего пользователя, <code class="highlighter-rouge">user_name = self.request.user.username</code>. Затем использовали запрос к модели <code class="highlighter-rouge">Enterprise  через objects.get</code> с параметрами запроса полей через связную таблицу. В данном случае мы обращаемся к модели  <code class="highlighter-rouge">Enterprise</code>, через связную (по первичному ключу) модель <code class="highlighter-rouge">manager</code> по полю <code class="highlighter-rouge">username</code> соответствующему значению <code class="highlighter-rouge">username</code>, которое мы вытащили из <code class="highlighter-rouge">self.request</code>. Затем, получив объект в виде <code class="highlighter-rouge">enterprise</code>, мы фильтруем по названию предприятия те автомобили, которые к нему привязаны, (<code class="highlighter-rouge">list_car = Car.objects.filter(of_enterprise=enterprise)</code> ), и возвращаем список найденных автомобилей в стандартное поле класса <code class="highlighter-rouge">queryset</code>. <br />
-Это достаточно тривиальный пример, который показывает логику запросов и фильтраций.</p>
-
-<p>Теперь каждый «залогиненый» пользователь (manager), при обращении к визуализатору списка автомобилей, будет получать список только тех автомобилей, которые закреплены за его предприятием. Тем самым, мы добились разграничения доступа пользователей к ресурсам.</p>
+<p>Сервер ответил кодом 200 ОК. А ниже мы видим наш список в JSON формате:
+<img src="/image/post-2020-04-20/curl-cmd.JPG" alt="" /></p>
 
 
   </article>
@@ -144,6 +113,13 @@
 <aside class="related">
   <h3>История постов</h3>
   <ul class="related-posts">
+    
+      <li>
+        <a href="/2021/05/19/programming-universe9/">
+          Вселенная программирования. ООП.
+          <small><time datetime="2021-05-19T00:00:00+03:00">19 May 2021</time></small>
+        </a>
+      </li>
     
       <li>
         <a href="/2021/04/09/programming-universe8/">
@@ -341,7 +317,7 @@
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-04-10T12:54:03+03:00">2021</time>
+		  &copy; <time datetime="2021-05-19T18:33:06+03:00">2021</time>
 		</font>  
 		  
         </small>
