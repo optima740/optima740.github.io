@@ -1,0 +1,90 @@
+---
+layout: default
+---
+
+<div class="posts">
+  {% for post in paginator.posts %}
+  <article class="post">
+    <h1 class="post-title">
+      <a href="{{ site.baseurl }}{{ post.url }}">
+        {{ post.title }}
+      </a>
+    </h1>
+
+    <time datetime="{{ post.date | date_to_xmlschema }}" class="post-date">{{ post.date | date_to_string }}</time>
+
+    {{ post.content }}
+  </article>
+  {% endfor %}
+</div>
+<font style="color: gray; font-size: 22px; font-family: Arial">
+<p>Архив моих постов:</p>
+</font>
+{% if site.posts != empty %}
+<aside class="related">
+ 
+  <h3>Вселенная программирования - глобальный взгляд на все</h3>
+  <ul class="related-posts">
+  {% assign posts = site.posts | where: "category","universe" %}
+    {% for post in posts %}
+      <li>
+        <a href="{{ post.baseurl }}{{ post.url }}">
+          {{ post.title }}
+          <small><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time></small>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  <h3>Функциональное программирование</h3>
+  <ul class="related-posts">
+  {% assign posts = site.posts | where: "category","functional" %}
+    {% for post in posts %}
+      <li>
+        <a href="{{ post.baseurl }}{{ post.url }}">
+          {{ post.title }}
+          <small><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time></small>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  <h3>Императивное программирование</h3>
+  <ul class="related-posts">
+  {% assign posts = site.posts | where: "category","imperative" %}
+    {% for post in posts %}
+      <li>
+        <a href="{{ post.baseurl }}{{ post.url }}">
+          {{ post.title }}
+          <small><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time></small>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  <h3>Django</h3>
+  <ul class="related-posts">
+  {% assign posts = site.posts | where: "category","django" %}
+    {% for post in posts %}
+      <li>
+        <a href="{{ post.baseurl }}{{ post.url }}">
+          {{ post.title }}
+          <small><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time></small>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  <h3>Начало</h3>
+  <ul class="related-posts">
+  {% assign posts = site.posts | where: "category","start" %}
+    {% for post in posts %}
+      <li>
+        <a href="{{ post.baseurl }}{{ post.url }}">
+          {{ post.title }}
+          <small><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time></small>
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+  
+</aside>
+{% endif %}
+	
+	

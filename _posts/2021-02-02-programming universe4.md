@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Вселенная программирования. Ключевые концепции ч1.
+category: universe
 ---
 ![](/image/post-2021-01-10/1.png)  
 

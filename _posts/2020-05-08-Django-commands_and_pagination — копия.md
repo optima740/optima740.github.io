@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Django. Пользовательские команды и Пагинация.
+category: django
 ---
 ![](/image/post-2020-05-08/head.jpg)
 

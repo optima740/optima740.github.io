@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Django. Знакомство с REST.
+category: django
 ---
 ![](/image/post-2020-04-12/rest_api.jpg)
 

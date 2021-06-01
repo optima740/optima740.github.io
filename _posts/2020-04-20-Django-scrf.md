@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Django. Немного о SCRF.
+category: django
 ---
 ![](/image/post-2020-04-20/csrf.jpg)
 

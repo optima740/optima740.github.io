@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Django. Стоп, контроль!
+category: django
 ---
 ![](/image/post-2020-04-01/stop-control2.jpg)
 

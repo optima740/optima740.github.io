@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Вселенная программирования. ООП.
+category: "universe"
 ---
 ![](/image/post-2021-01-10/1.png)  
 

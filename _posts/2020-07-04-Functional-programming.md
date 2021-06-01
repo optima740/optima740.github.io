@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Функциональное программирование. Другой взгляд на мир.
+category: functional
 ---
 ![](/image/post-2020-07-04/fp.jpg)
 

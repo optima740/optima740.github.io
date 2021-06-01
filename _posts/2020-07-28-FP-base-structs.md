@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Функциональное программирование. Элементарные конструкции.
+category: functional
 ---
 ![](/image/post-2020-07-04/fp.jpg)
 

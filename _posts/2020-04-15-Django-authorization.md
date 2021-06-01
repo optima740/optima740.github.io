@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Django. Авторизация и ограничение доступа.
+category: django
 ---
 ![](/image/post-2020-04-15/zamok1.jpg)
 

@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Императивное программирование. Вызов функций ч2.
+category: imperative
 ---
 ![](/image/post-2020-11-15/logo.JPG)
 

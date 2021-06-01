@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Django. Быстро прикручиваем REST API к проекту.
+category: django
 ---
 ![](/image/post-2020-04-13/add_rest.JPG)
 

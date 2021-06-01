@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Точка старта. Когда ты понимаешь, что твои знания равны нулю)
+category: start
 ---
 <img src="\image\start-point2.jpeg" alt="drawing" width="2000"/>
 

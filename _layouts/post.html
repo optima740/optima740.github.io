@@ -1,6 +1,9 @@
 ---
 layout: default
 ---
+<a class="btn btn-outline-secondary" href="/history_posts" role="button">
+    <font style="color: black; font-size: 24px; font-family: Arial">Все мои посты</font>
+</a>
 
 <article class="post">
   <h1 class="post-title">{{ page.title }}</h1>
@@ -9,19 +12,7 @@ layout: default
 </article>
 
 
-
-{% if site.posts != empty %}
-<aside class="related">
-  <h3>История постов</h3>
-  <ul class="related-posts">
-    {% for post in site.posts %}
-      <li>
-        <a href="{{ post.baseurl }}{{ post.url }}">
-          {{ post.title }}
-          <small><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date_to_string }}</time></small>
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
-</aside>
-{% endif %}
+<a href="/history_posts"><font style="color: gray; font-size: 22px; font-family: Arial">Назад к списку постов</font></a>
+<p></p>
+<p></p>
+<p></p>

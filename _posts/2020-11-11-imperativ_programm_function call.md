@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Императивное программирование. Вызов функций, нити исполнения кода.
+category: imperative
 ---
 ![](/image/post-2020-11-11/logo.JPG)
 

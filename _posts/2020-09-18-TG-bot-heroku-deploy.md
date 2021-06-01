@@ -1,6 +1,7 @@
 ﻿---
 layout: post
 title: Питонячий Телеграм-Бот, Yandex-API и диплой на Heroku.
+category: imperative
 ---
 ![](/image/post-2020-09-18/logo.JPG)
 
