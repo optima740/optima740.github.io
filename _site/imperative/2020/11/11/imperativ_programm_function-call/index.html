@@ -28,7 +28,7 @@
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-11-11T00:00:00+04:00" />
 <script type="application/ld+json">
-{"headline":"Императивное программирование. Вызов функций, нити исполнения кода.","dateModified":"2020-11-11T00:00:00+04:00","datePublished":"2020-11-11T00:00:00+04:00","author":{"@type":"Person","name":"Andrey Melnikov"},"mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/imperative/2020/11/11/imperativ_programm_function-call/"},"@type":"BlogPosting","url":"http://localhost:4000/imperative/2020/11/11/imperativ_programm_function-call/","@context":"https://schema.org"}</script>
+{"author":{"@type":"Person","name":"Andrey Melnikov"},"headline":"Императивное программирование. Вызов функций, нити исполнения кода.","dateModified":"2020-11-11T00:00:00+04:00","datePublished":"2020-11-11T00:00:00+04:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/imperative/2020/11/11/imperativ_programm_function-call/"},"@type":"BlogPosting","url":"http://localhost:4000/imperative/2020/11/11/imperativ_programm_function-call/","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 
 </head>
@@ -70,7 +70,7 @@
 
 <p>В ходе написания программы мы неизбежно сталкиваемся с ситуацией многократного повторного использования одного и того же кода. Эти повторяющиеся участки программного кода, согласно принципу <strong>DRY</strong> - Don’t repeat yourself (не повторяй себя), принято локализовать и выделять в отдельные подпрограммы (или функции).</p>
 
-<p>Давайте рассмотрим процесс вызова функций из главной программы. Как я уже ранее отмечал в своей <a href="https://optima740.github.io/2020/02/17/go-to-stage-down/">статье</a> , при запуске программы, операционная система генерирует процесс. Процесс, в свою очередь, получает свой собственный набор (пространство) адресов памяти. Это такой способ разграничить ресурсы одной программы от другой, чтобы избежать использование памяти одного процесса другим: все адреса памяти, к которым процесс может обращаться принадлежат только ему.</p>
+<p>Давайте рассмотрим процесс вызова функций из главной программы. Как я уже ранее отмечал в своей <a href="https://optima740.github.io/imperative/2020/02/17/go-to-stage-down/">статье</a> , при запуске программы, операционная система генерирует процесс. Процесс, в свою очередь, получает свой собственный набор (пространство) адресов памяти. Это такой способ разграничить ресурсы одной программы от другой, чтобы избежать использование памяти одного процесса другим: все адреса памяти, к которым процесс может обращаться принадлежат только ему.</p>
 
 <p>Пространство памяти внутри процесса, если описать очень упрощенно, делится на несколько сегментов:</p>
 
@@ -119,7 +119,7 @@
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-06-01T14:23:16+04:00">2021</time>
+		  &copy; <time datetime="2021-06-01T17:27:54+04:00">2021</time>
 		</font>  
 		  
         </small>
