@@ -1,0 +1,52 @@
+I"<!<p><img src="/image/post-2021-01-10/1.png" alt="" /></p>
+
+<p>Серия тем о вселенной программирования продолжается. В предыдущей своей <a href="https://optima740.github.io/universe/2021/02/02/programming-universe4/">статье</a> я описывал основные концепции программирования - то, что является фундаментальной идейной базой, то, на чем основывается искусство программирования. Данные идеи практически реализованы в языках программирования в различных комбинациях.  И в той же статье рассказал об одной из четырех ключевых концепций - концепции именованного состояния.</p>
+
+<p>Итак, сегодня речь пойдет о еще одной базовой концептуальной вещи в программировании - замыкания, а если быть точнее, <strong>замыкания с лексической областью видимости (lexically scoped closure)</strong>.
+Это достаточно мощная концепция сама по себе. Например, функциональное программирование, по сути, и есть воплощение концепции замыкания. На данном этапе понятно словесно описать суть данной идеи достаточно тяжело, поэтому я для начала приведу пример кода с пояснениями.<br />
+Самой наглядной и популярной реализацией замыкания являются классические функции.</p>
+
+<p><img src="/image/post-2021-02-15/pic1.jpg" alt="" /></p>
+
+<p><code class="highlighter-rouge">main_func</code>, которая возвращает <code class="highlighter-rouge">inner_func</code>, которая обращается к локальной переменной <code class="highlighter-rouge">name</code>, определённой внутри <code class="highlighter-rouge">main_func</code>.<br />
+Когда вызвана <code class="highlighter-rouge">main_func</code>, она возвращает <code class="highlighter-rouge">inner_func</code>, которая запоминается где-то во внешней переменной (например, <code class="highlighter-rouge">f = main_func()</code>), после чего <code class="highlighter-rouge">main_func</code> как бы прекращает своё существование.
+Однако <code class="highlighter-rouge">inner_func</code> , если её теперь вызывать через переменную <code class="highlighter-rouge">f()</code>, должна использовать внутри себя переменную <code class="highlighter-rouge">name</code>, принадлежащую функции <code class="highlighter-rouge">main_func</code>, которая уже не существует.</p>
+
+<p>Замыкание - это функция <code class="highlighter-rouge">inner_func</code>, которая связана со своим контекстом выполнения. Она замкнула в себе определённую информацию из внешней среды в пределах своей области видимости, и, хотя <code class="highlighter-rouge">main_func</code> формально не существует, <code class="highlighter-rouge">inner_func</code> будет корректно использовать переменную <code class="highlighter-rouge">name</code>, локальную внутри конкретного экземпляра функции <code class="highlighter-rouge">inner_func</code>.</p>
+
+<p>Вот еще пример функции счетчика, реализованной при помощи замыкания:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">counter</span><span class="p">():</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">def</span> <span class="nf">inner</span><span class="p">():</span>
+        <span class="k">nonlocal</span> <span class="n">count</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">count</span>
+    <span class="k">return</span> <span class="n">inner</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">counter</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">c</span><span class="p">())</span>
+
+<span class="c1"># 1
+# 2
+# 3
+# 4
+# 5
+</span>
+<span class="n">r</span> <span class="o">=</span> <span class="n">counter</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">r</span><span class="p">())</span>
+<span class="c1"># 1
+# 2
+# 3
+</span></code></pre></div></div>
+<p>Каждый раз при вызове функции <code class="highlighter-rouge">counter()</code>, она будет считать и запоминать кол-во своих вызовов. 
+Если создать новый объект (при этом пространство имен обновится), то счетчик сбрасывается и считает заново.</p>
+
+<p>Ну а теперь попробую описать суть концепции более простыми словами.<br />
+Итак, <strong>замыкание</strong> – это функция, связанная со своим контекстом выполнения использованием пространства имен. Главная идея тут заключается в разделении определения программной логики от ее исполнения через создание функций, которые возвращают своим результатом другие функции со своим контекстом. Другими словами, программа может взять некоторые инструкции кода в одном месте в виде отложенного “пакета работы”, передать их в другое место, и исполнить уже там. Причём результат выполнения пакета в новом месте программы будет точно таким же, как если бы этот пакет выполнялся там, где замыкание было исходно создано.</p>
+
+<p>Кроме того, объекты и другие программные компоненты, хранящие внутри себя нужные состояния (или ссылки на них) – это также является замыканиями. Например, в ООП класс – это, по сути, функция, которая при своем вызове (через конструктор) возвращает объект – это тоже замыкание.<br />
+Таким образом, мы видим в концепции замыкания общую ключевую конструкцию для различных парадигм программирования, таких как функциональное, императивное и объектно-ориентированное. В большинстве языков программирования замыкания скрыты внутри имплементации языка и не доступны программисту напрямую.</p>
+
+:ET
