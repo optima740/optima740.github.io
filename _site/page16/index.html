@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <title>
     
       AndreyMelnikov.MyBlog &middot;    # мой блог: IT-марафон.
@@ -60,73 +61,38 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/django/2020/05/28/Django-timezone/">
-        Django. Время поговорить о времени.
+      <a href="/functional/2020/07/04/Functional-programming/">
+        Функциональное программирование. Другой взгляд на мир.
       </a>
     </h1>
 
-    <time datetime="2020-05-28T00:00:00+04:00" class="post-date">28 May 2020</time>
+    <time datetime="2020-07-04T00:00:00+03:00" class="post-date">04 Jul 2020</time>
 
-    <p><img src="/image/post-2020-05-28/time2.jpg" alt="" />
-Сегодня я хотел бы сделать небольшие заметки относительно тайм-зон и о том, как я столкнулся с их применением в Django.<br />
-<strong>Тайм-зона</strong> – это привязка к часовому поясу. Как мы знаем, часовой пояс это, по сути, поправка, на которую корректируют время по географическому расположению относительно UTC. В свою очередь, <strong>UTC</strong> (Universal Time Coordinated) – это, своего рода, абсолютное время, относительно которого уже идет смещение поправки по часовым поясам в зависимости от географического расположения пользователя.</p>
+    <p><img src="/image/post-2020-07-04/fp.jpg" alt="" /></p>
 
-<p>В Django настройки тайм-зоны выставляются глобально в файле <code class="highlighter-rouge">settings.py</code></p>
+<p>В своей сегодняшней статье, я хотел бы немного затронуть теорию программирования, а именно, поговорить о функциональном программировании. Дело в том, что рано или поздно человек, изучающий программирование, выходит за рамки всем привычной классической императивной модели, чтобы узнать больше, и взглянуть на процесс составления кода с другой стороны. Настало время и мне заглянуть за «забор» привычного и родного «двора», в котором уже многое знакомо, в котором я вырос.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">TIME_ZONE</span> <span class="o">=</span> <span class="s">'UTC'</span>
-<span class="n">USE_TZ</span> <span class="o">=</span> <span class="bp">True</span>
-</code></pre></div></div>
+<p>На сегодняшний день во вселенной программирования существует несколько основных парадигм, т.е. совокупностей идей и понятий, определяющих стиль написания компьютерных программ. Есть много мнений по поводу классификации всех существующих методологий и парадигм. Я не стану ни с кем спорить, а просто выражу свое мнение. На мой взгляд, делать основное разделение стоит на Декларативное и Императивное программирование.</p>
 
-<p>Полем <code class="highlighter-rouge">TIME_ZONE</code> (для БД не поддерживающих часовые пояса) мы определяем, непосредственно, сам часовой пояс. В данном случае UTC. 
-<code class="highlighter-rouge">USE_TZ</code> – этим полем мы определяем для Django, что значение времени (например, поле модели типа <code class="highlighter-rouge">DateTimeField</code>) будет записано в базу данных в той тайм-зоне, которая указана в настройке проекта Django в поле <code class="highlighter-rouge">TIME_ZONE</code>. <br />
-Тут сразу следует сделать оговорку. Не все базы данных поддерживают формат времени с учетом тайм-зоны. Например, SQLite, MySQL, Oracle не поддерживают часовые пояса (а как раз SQLite, идет как стандартная БД для Django “из коробки”) – и в данном случае , при <code class="highlighter-rouge">USE_TZ = True</code>, фреймворк запишет время с учетом установки <code class="highlighter-rouge">TIME_ZONE</code>. 
-В случае, если в проекте Django используется БД, поддерживающая работу с часовыми поясами (например, PostgreSQL), то опция <code class="highlighter-rouge">USE_TZ</code> должна быть установлена в <code class="highlighter-rouge">False</code>, тем самым позволяя БД работать с часовым поясом, переданным в пользовательских данных без учета настройки проекта Django <code class="highlighter-rouge">TIME_ZONE</code>.</p>
+<p>Для привычного многим императивного стиля понимания и написания кода, которому учат в школах и университетах в рамках общеобразовательных программ, и к которому большинство из нас так привыкло, свойственно последовательное выполнение команд. Т.е. компьютеру передается совокупность последовательных инструкций, выполнение которых неразрывно связано с изменением состояния этой программы. Вот почему в императивных языках обязательно присутствует понятие «переменная». А раз есть переменные — должен быть и оператор присваивания. Переменные используются как ячейки для хранения данных, которые по ходу программы могут быть переопределены, а данные перезаписаны.</p>
 
-<p>Давайте рассмотрим следующий случай. В нашем приложении по учету автомобилей есть несколько предприятий. Для каждого предприятия нам необходимо реализовать возможность установки тайм-зоны путем выбора из предложенных вариантов часовых поясов, чтобы каждое предприятие могло работать в своем часовом поясе. Если при создании предприятия тайм-зона не выбрана, то это значение соответствует UTC. В <code class="highlighter-rouge">models.py</code> добавим поле для нашей модели <code class="highlighter-rouge">Enterprise:</code></p>
+<p>Однако существует принципиально иной подход к разработке, а именно декларативное программирование. Данное направление также включает в себя несколько парадигм, одной из которых является функциональная парадигма. При этом подходе программа воспринимается уже не как набор инструкций, а как набор выражений. А поскольку выражения вычисляются путём применения функций к аргументам (то есть, по сути, к другим выражениям), там нет места ни переменным, ни оператору присваивания. Каждая функция в конечном итоге представляет собой выражение, вычисляемое посредством применения каких-то других функций к каким-то другим аргументам, тогда нам просто не нужно ничего присваивать.<br />
+Действительно, с функциональным программированием все иначе, нежели с императивным. Тут совсем другая философия, которая ближе к классической математике. Как я уже отметил, основным инструментом является функция. Функция может сделать только одно - рассчитать что-то и вернуть как результат. Данное свойство еще называют ссылочной прозрачностью или «чистой» функцией. Чистой называется такая функция, которая предельно прозрачна: её выходное значение определяется только её аргументами и более ничем. Именно поэтому чистая функция предельно надёжна, ведь она не может преподнести нам никаких сюрпризов. Это и есть функция в математическом смысле.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Enterprise</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">TIMEZONES</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">all_timezones</span><span class="p">,</span> <span class="n">pytz</span><span class="o">.</span><span class="n">all_timezones</span><span class="p">))</span>
-    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
-    <span class="n">address</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
-    <span class="n">time_zone</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">TIMEZONES</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">'UTC'</span><span class="p">)</span>
-</code></pre></div></div>
+<p>Если немного окунуться в историю, то функциональное программирование берет начало из формальной системы лямбда исчислений, которую разработал Алонзо Чёрч. Лямбда исчисления - это своего рода работа с абстрактными математическими головоломками, для изучения общих понятий вычислений, если сказать совсем кратко и не вдаваясь в академическое определение. В 1958 году появился язык обработки списков, List Processing language (Lisp). Lisp задумывался как имплементация Лямбда-исчисления Алонзо. В 1973 году группа программистов в лаборатории искусственного интеллекта в Массачусетском технологическом институте разработали железо, которое они назвали Lisp-машиной. Это была аппаратная реализация лямбда-исчислений Алонзо.</p>
 
-<p>Далее, для взаимодействия с моделями автомобилей добавим в модель <code class="highlighter-rouge">Car</code> поле, отвечающее за дату и время приобретения автомобиля, или постановки на учет в данном предприятии - как угодно. Данные о приобретении автомобиля заносятся автоматически и значение берется из текущего времени пользователя (<code class="highlighter-rouge">auto_now=True</code>) с поправкой на настройку в <code class="highlighter-rouge">settings.py</code> (мы используем стандартную БД SQLite). Т.о. время в поле модели <code class="highlighter-rouge">Enterprise</code> запишется в абсолютном значении UTC.</p>
+<p>Функциональное программирование это не только теория программирования или computer since, данный подход используется и в продакшене. 
+Например, Haskell — чистый функциональный язык с ленивой моделью вычислений и статической типизацией. Благодаря одному из свойств «чистых» функций, на Haskell можно спокойно писать коммерческий софт. <br />
+<a href="https://wiki.haskell.org/Haskell_in_industry">Вот для примера список компаний использующий Haskell в продакшене.</a>    <br />
+<a href="https://code.facebook.com/posts/302060973291128/open-sourcing-haxl-a-library-for-haskell/">Вот как Facebook борется со спамом с помощью Хаскеля.</a></p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Car</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">brand</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
-    <span class="n">color</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-    <span class="n">fuel_util</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-    <span class="n">date_of_buy</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">of_enterprise</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">'Enterprise'</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-</code></pre></div></div>
+<p>В следующих статьях я планирую более подробно поговорить, о том, что нового я узнал при изучении функционального программирования на примере LISP и его онлайн интерпетатора Scheme <a href="https://repl.it/languages/Scheme">https://repl.it/languages/Scheme.</a></p>
 
-<p>Т.к. в наш проект ранее мы интегрировали REST API, то изменять (делать поправку на часовой пояс предприятия) необходимо не в HTML шаблоне, а на стороне бэкенда для того, чтобы API сформировал уже готовые данные с учетом поправки на тайм-зону, и отдал эти данные (например, словарем) во фронтенд. Тем самым мы придерживаемся концепции API и оставляем логику на стороне бэкенда в нашем <code class="highlighter-rouge">views.py</code>:</p>
+<p>Для данной статьи были использованы материалы из следующих источников:</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="c1"># переопределяем родительский метод для запроса из БД с фильтром для наших условий
-</span>    <span class="n">user_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>  <span class="c1"># получаем данные о имени пользователя из request
-</span>    <span class="n">list_car</span> <span class="o">=</span> <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">all</span><span class="p">()</span>            <span class="c1"># формируем список всех автомобилей
-</span>    <span class="n">enterprise</span> <span class="o">=</span> <span class="n">Enterprise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">manager__username__contains</span><span class="o">=</span><span class="n">user_name</span><span class="p">)</span>  <span class="c1"># получаем предприятие по пользователю
-</span>    <span class="n">list_car</span> <span class="o">=</span> <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">of_enterprise</span><span class="o">=</span><span class="n">enterprise</span><span class="p">)</span>   <span class="c1"># получаем список авто по конкретному предприятию
-</span>    <span class="n">tz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_zone</span><span class="p">()</span>                                 <span class="c1"># получаем таймзону из предприятия текущего менеджера
-</span>    <span class="k">for</span> <span class="n">car</span> <span class="ow">in</span> <span class="n">list_car</span><span class="p">:</span>   <span class="c1"># проходимся по всем автомобилям из списка запроса
-</span>        <span class="n">car_of_db</span> <span class="o">=</span> <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">car</span><span class="o">.</span><span class="nb">id</span><span class="p">)</span>        <span class="c1"># получаем из БД  машину по id
-</span>        <span class="n">datatime_of_db</span> <span class="o">=</span> <span class="n">car_of_db</span><span class="o">.</span><span class="n">date_of_buy</span>        <span class="c1"># получаем из поля значение даты и времени покупки машины
-</span>        <span class="n">datatime_tz</span> <span class="o">=</span> <span class="n">datatime_of_db</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">tz</span><span class="p">)</span>       <span class="c1"># корректировка даты и времени относительно другой tz
-</span>        <span class="n">car</span><span class="o">.</span><span class="n">date_of_buy</span> <span class="o">=</span> <span class="n">datatime_tz</span>                 <span class="c1"># записываем откорректированное время в список для отображения в шаблоне
-</span>    <span class="k">return</span> <span class="n">list_car</span>    
+<p><code class="highlighter-rouge">https://www.ohaskell.guide/immutability-n-purity.html</code></p>
 
-<span class="k">def</span> <span class="nf">get_time_zone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">user_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>
-    <span class="n">enterprise</span> <span class="o">=</span> <span class="n">Enterprise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">manager__username__contains</span><span class="o">=</span><span class="n">user_name</span><span class="p">)</span>   <span class="c1"># получаем предприятие по пользователю
-</span>    <span class="n">tz</span> <span class="o">=</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="n">enterprise</span><span class="o">.</span><span class="n">time_zone</span><span class="p">)</span>     <span class="c1"># получаем таймзону из предприятия текущего менеджера
-</span>    <span class="k">return</span> <span class="n">tz</span>
-</code></pre></div></div>
-<p>Я постарался максимально подробно в коде расписать каждое действие пошагово, в целях бОльшей понятности.</p>
-
-<p>В итоге, наш API будет отдавать словарь с уже исправленным временем, применительно к часовому поясу того предприятия, за которым закреплены автомобиль и авторизованный сотрудник, который делает запрос на просмотр списка доступных авто.</p>
+<p><code class="highlighter-rouge">Книга Миран Липовача. Изучай Haskell во имя добра!</code></p>
 
 
   </article>
@@ -156,7 +122,7 @@
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-06-01T17:27:54+04:00">2021</time>
+		  &copy; <time datetime="2021-06-21T10:23:34+03:00">2021</time>
 		</font>  
 		  
         </small>

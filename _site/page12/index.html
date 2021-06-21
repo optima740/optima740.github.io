@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <title>
     
       AndreyMelnikov.MyBlog &middot;    # мой блог: IT-марафон.
@@ -60,122 +61,64 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/imperative/2020/09/18/TG-bot-heroku-deploy/">
-        Питонячий Телеграм-Бот, Yandex-API и диплой на Heroku.
+      <a href="/imperative/2020/11/15/imperativ_programm_function-call2/">
+        Императивное программирование. Вызов функций ч2.
       </a>
     </h1>
 
-    <time datetime="2020-09-18T00:00:00+04:00" class="post-date">18 Sep 2020</time>
+    <time datetime="2020-11-15T00:00:00+03:00" class="post-date">15 Nov 2020</time>
 
-    <p><img src="/image/post-2020-09-18/logo.JPG" alt="" /></p>
+    <p><img src="/image/post-2020-11-15/logo.JPG" alt="" /></p>
 
-<p>На сегодняшний день, наверное, только ленивый не писал и не делал обзорных статей с инструкциями как запилить собственного телеграм-бота. Это уже такой своеобразный мейнстрим на сегодня, особенно среди питонистов.<br />
-В данном посте я хотел бы затронуть не столько процесс написания самого бота, сколько описать в целом процесс интеграции кода на питоне с телеграм-сервисом, сторонним API по геокодированию от Yandex и развертыванию этого всего на удаленном бесплатном хостинге Heroku.</p>
+<p>В предыдущей своей статье я затронул общую упрощенную механику, на основе изученного мной материала, вызова функций и нитей исполнения кода. Но вскоре, идея раскрыть тему функций более подробно, все же заставила меня написать вторую часть статьи, в которой я попытаюсь глубже описать процессы происходящие при вызове и исполнении функции, на примере изучаемого мной языка Python.</p>
 
-<p>Итак, попалось мне как-то одно тестовое задание, где требовалось написать телеграм-бота с возможностью обрабатывать запросы пользователя в виде текста с частичным упоминанием географических адресов. В ответ пользователь должен получить полный структурированный адрес географического объекта. На этом задание конечно не исчерпывалось, но остальное я опишу возможно в другой раз :)</p>
+<p>Питон – язык, использующий интерпретатор (в самом распространенном случае это CPython, реализованный на C). Вообще, тема трансляторов - это отдельная тема для изучения и освещения, в данной статье я затрону ее очень поверхностно, ровно для понимания темы текущего поста. Итак, существуют два вида трансляторов – это <em>компилятор</em> и <em>интерпретатор</em>.<br />
+Как работает компилятор я уже описывал в одной из своих первых <a href="https://optima740.github.io/imperative/2020/02/17/go-to-stage-down/">статей</a>.<br />
+Интерпретатор, в отличие от компилятора (он переводит исходный код сразу в машинный), переводит исходный код сначала в промежуточный байт-код, который выполняется в, так называемой, виртуальной машине и, соответственно, не привязан к конкретной платформе. Эта самая виртуальная машина, в случае с Питоном, имеет стековый тип (бывают еще регистровые виртуальные машины).<br />
+Выполняя промежуточный байт-код, в который интерпретатор перевел исходный код, интерпретатор работает со стеком.</p>
 
-<p>Чтобы написать бота, я использовал питонячую библиотеку <a href="https://github.com/python-telegram-bot/python-telegram-bot"><strong><code class="highlighter-rouge">python-telegram-bot</code></strong></a>. Там все достаточно понятно. Есть официальная документация и масса примеров в сети. Если коротко описать процесс создания самого бота, то для этого необходимо:</p>
+<p><strong>Создание функции</strong></p>
 
-<ul>
-  <li>Создать и зарегистрировать своего бота.<br />
-Для этого в сервисе телеграм необходимо отправить Боту-Отцу (<strong><code class="highlighter-rouge">@BotFather</code></strong>) команду <strong><code class="highlighter-rouge">/newbot</code></strong>.<br />
-Дать боту имя (name) и имя пользователя (username).<br />
-В ответ Папа-Бот вышлет уникальный API-ключ (TOKEN) для вашего бота. Данный ключ является идентификатором для доступа и управления ботом. Его нужно сохранить и держать в тайне, иначе бота могут угнать! (Не размещать в коде в публичном доступе на открытых ресурсах, например).</li>
-</ul>
+<p><img src="/image/post-2020-11-15/pic1.jpg" alt="" /><br />
+По порядку сверху вниз в байт-коде выполняются операторы.<br />
+LOAD_CONST - загружает в стек <code class="highlighter-rouge">code object</code> с адресом нашей функции (по сути это объект - в питоне все есть объект).<br />
+Далее MAKE_FUNCTION создает из <code class="highlighter-rouge">code object</code> функцию и возвращает ее обратно в стек.<br />
+STORE_NAME - связывает полученную функцию с ее именем <code class="highlighter-rouge">my_sum</code>, для доступа к ней.</p>
 
-<p><img src="/image/post-2020-09-18/bot-father.JPG" alt="" /></p>
+<p><strong>Вызов функции</strong></p>
 
-<ul>
-  <li>Собственно, написать код (логику работы нашего бота), используя любую подходящую библиотечку для телеграм:)
-В коде мы используем полученный ранее API ключ, для взаимодействия с сервером телеграм.<br />
-Структура каталога нашего бота в общем случае должна содержать следующие файлы:
-<strong><code class="highlighter-rouge">__init.py__</code></strong> - необходим, чтобы Python рассматривал каталог, как содержащий пакеты для корректного импорта.<br />
-<strong><code class="highlighter-rouge">main.py</code></strong> – сам код (логика) бота.<br />
-<strong><code class="highlighter-rouge">config.py</code></strong> – указываем наши токены, которые потом импортируются в <code class="highlighter-rouge">mian.py</code>.<br />
-Вот так, если упрощенно представить на схеме, все и происходит:</li>
-</ul>
+<p>Далее в байт-код преобразуется строчка исходного кода:</p>
 
-<p><img src="/image/post-2020-09-18/how_it_works.png" alt="" /></p>
-
-<ul>
-  <li>Запустить главный файл <code class="highlighter-rouge">main.py</code> на исполнение, и писать запросы нашему боту в телеграм-сервисе.</li>
-</ul>
-
-<p>Создав бота, пришло время дать ему дополнительный функционал. Поскольку цель состоит в том, чтобы бот взаимодействовал с API геокодера, отвечая на запросы пользователя полным адресом географического объекта. Для данной цели подходит <a href="https://yandex.ru/dev/maps/geocoder/doc/desc/concepts/about.html/"><strong>API от Yandex</strong></a>. Для бесплатного использования необходимо зарегистрироваться. При регистрации указать некоммерческое использование и после этого нам будет доступно 25000 запросов к API в сутки.<br />
-В ответ мы получим также API ключ, который необходимо использовать в коде бота для взаимодействия с Yandex геокодером.<br />
-Yandex геокодер использует прямое и обратное геокодирование. То есть, умеет отвечать полным адресом на текстовый запрос или координаты, и наоборот - отправлять координаты по указанному адресу. 
-В коде бота достаточно описать функцию обработчик для запросов пользователя, которая будет формировать запрос, затем парсить ответ от Yandex и выводить ответ пользователю в телеграм-клиент. На официальной странице API Yandex геокодера все достаточно понятно описано.</p>
-
-<p>И вот когда бот написан и отлажен, пришло время дать ему онлайн-доступность. Потому, что до сих пор он работал только при условии запущенного <code class="highlighter-rouge">main.py</code> файла на локальном компьютере с доступом в интернет. 
-Для бесплатного хостинга подобных проектов подходит сервис <a href="https://heroku.com"><strong>Heroku</strong></a> и созданный в нем активный аккаунт. Кроме того нам понадобится <code class="highlighter-rouge">Heroku Command Line Interface</code> (CLI) , который можно скачать <a href="https://devcenter.heroku.com/articles/getting-started-with-python#set-up">тут</a>, а также <a href="https://git-scm.com/book/en/v2/Getting-Started-Installing-Git">Git.</a></p>
-
-<p>Добавим в директорию нашего бота еще пару файлов <strong><code class="highlighter-rouge">Procfile</code></strong> и <strong><code class="highlighter-rouge">requirements.txt</code></strong>:</p>
-
-<p><strong><code class="highlighter-rouge">Procfile</code></strong> – текстовый, но без расширения. Для этого необходимо использовать сохранение через Notepad++ (опция All-typs (<em>.</em>))<br />
-Содержание файла:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>worker: python main.py
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>result = 100 + my_sum(20, 30).
 </code></pre></div></div>
 
-<p><strong><code class="highlighter-rouge">requirements.txt</code></strong> – обычный текстовый.<br />
-Содержание файла:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>appdirs==1.4.3
-certifi==2018.1.18
-Cython==0.23
-Django==1.10.6
-docutils==0.13.1
-packaging==16.8
-pipenv==11.8.0
-psutil==5.0.1
-pyowm==2.8.0
-Pygments==2.2.0
-pyparsing==2.2.0
-pyTelegramBotAPI==3.6.1
-python-telegram-bot==13.0.0
-requests==2.13.0
-six==1.10.0
-virtualenv==15.1.0
-virtualenv-clone==0.3.0
-</code></pre></div></div>
-<p>Это необходимые компоненты для виртуального окружения на сервере. Конечно, всего этого нам сейчас и не нужно, но пусть будет:) Главное, чтобы необходимые нам библиотеки и фреймворки были нужной версии.
-После того, как оба файла добавлены в каталог с ботом, необходимо запушить все на гитхаб в отдельный репозиторий, предварительно удалив из кода API токены (помним про безопасность).<br />
-Теперь у нас всё готово для загрузки бота на Heroku.<br />
-Вернем токены обратно в наш код и приступим к диплою. Из терминала (командной строки - в моем случае это Git bash):</p>
-<ul>
-  <li>Логинемся.
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> $ heroku login
-</code></pre></div>    </div>
-    <p>Нажимаем любую клавишу, переходим в браузер, подтверждаем вход.</p>
-  </li>
-  <li>Создаем проект.
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ heroku create
-</code></pre></div>    </div>
-    <p>Имя будет создано автоматически. Можно также это сделать из-под браузера.</p>
-  </li>
-  <li>Клонируем каталог с созданным проектом к себе. В данном каталоге должны быть файлы из нашего репозитория с телеграм-ботом.
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ heroku git:clone -a hidden-mountain-ххххх
-</code></pre></div>    </div>
-  </li>
-  <li>Переходим в каталог:
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd hidden-mountain-ххххх
-</code></pre></div>    </div>
-  </li>
-  <li>И делаем привычную связку команд для Git: add-commit-push.
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git add .
-$ git commit -am "my-deploy"
-$ git push heroku master
-</code></pre></div>    </div>
-    <p>После чего несколько минут будут устанавливаться указанные в <code class="highlighter-rouge">requirements.txt</code> компонеты. По завершении процесса, будет запущен <code class="highlighter-rouge">main.py</code> файл как указано в <code class="highlighter-rouge">Procfile</code>. После чего бот должен стать доступным. Если этого не происходит можно сделать команду:</p>
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ heroku ps:scale worker=1
-</code></pre></div>    </div>
-    <p>Для отладки ошибок можно использовать логирование (именно этот режим позволил мне отловить ошибку импорта из каталога, который я удалил. И из-за этого мой бот не запускался удаленно.):</p>
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ heroku logs
-</code></pre></div>    </div>
-  </li>
-</ul>
+<p>Рассмотрим правую часть выражения. Первым аргументом бинарного оператора сложения (BINARY_ADD) является константа <code class="highlighter-rouge">100</code>. Вторым оператором является функция <code class="highlighter-rouge">my_sum</code> со своими фактическими параметрами <code class="highlighter-rouge">20</code> и <code class="highlighter-rouge">30</code>.</p>
 
-<p>Готово! Теперь проверяем бота - он должен работать в удаленном режиме.<br />
-Правда тут стоит сделать оговорку. Обычный бесплатный аккаунт на heroku дает вам 550 dyno часов в месяц. При достижении данного лимита, ваше приложение будет автоматически деактивировано. Информацию о текущем состоянии использования часов, можно посмотреть в настройках учетной записи.
-Нажмите на свой аватар в правом верхнем углу сайта и выберите <em>Account settings</em>, перейдите во вкладку <em>Billing</em>, а затем в раздел <em>Free Dyno Usage</em>.</p>
+<p><img src="/image/post-2020-11-15/pic1-1.jpg" alt="" /><br />
+LOAD_CONST - загружает константу со значением <code class="highlighter-rouge">100</code> в стек.<br />
+Далее, LOAD_NAME - загружает нашу функцию <code class="highlighter-rouge">my_sum</code> (точнее ее адрес в памяти, который связан с ее именем ссылкой).<br />
+LOAD_CONST – загружает аргументы функции (константы <code class="highlighter-rouge">20</code> и <code class="highlighter-rouge">30</code>). Т.к. структура «стек» имеет схему доступа, работающую по принципу <strong>LIFO</strong> (<strong>last in — first out</strong>, «последним вошел — первым вышел»), то на верхушке стека оказывается последний загруженный элемент, а именно второй аргумент функции – число <code class="highlighter-rouge">30</code>.<br />
+CALL_FUNCTION [2] – Происходит вызов функции с двумя аргументами. После чего создается еще один новый пустой стек (на рисунке <strong>стек-2</strong>) для выполнения функции.</p>
+
+<p><strong>Выполнение функции</strong></p>
+
+<p>В <strong>стек-2</strong> (стек выполнения функции <code class="highlighter-rouge">my_sum</code>) передаются 2 аргумента из нашего <strong>стек-1</strong> – это константы <code class="highlighter-rouge">30</code> и <code class="highlighter-rouge">20</code>:</p>
+
+<p><img src="/image/post-2020-11-15/pic2.jpg" alt="" /><br />
+В байт-коде:</p>
+
+<p>LOAD_FAST [‘a’] – передает значение аргумента <code class="highlighter-rouge">a</code>.<br />
+LOAD_FAST [‘b’] – передает значение аргумента <code class="highlighter-rouge">b</code>.<br />
+Бинарный оператор сложения – BINARY_ADD производит сложения переменных <code class="highlighter-rouge">a</code> и <code class="highlighter-rouge">b</code>.<br />
+Результат работы функции возвращается оператором RETURN_VALUE.<br />
+Таким образом, на место вызова функции <code class="highlighter-rouge">my_sum</code> в <strong>стек-1</strong> (по адресу возврата) вернется значение <code class="highlighter-rouge">50</code>. После чего функция завершает свою работу, все ее локальные переменные будут удалены из памяти сборщиком мусора - Garbage Collector (это также тема для отдельной статьи:)<br />
+Далее, у нас следует (по исходному коду) оператор сложения константы <code class="highlighter-rouge">100</code> и <code class="highlighter-rouge">50</code> - результата выполнения нашей функции.</p>
+
+<p><img src="/image/post-2020-11-15/pic3.jpg" alt="" /><br />
+Аналогичным образом выполняется BINARY_ADD с 2 аргументами <code class="highlighter-rouge">100</code> и <code class="highlighter-rouge">50</code>, и результат выполнения связывается ссылкой с именем переменной <code class="highlighter-rouge">result</code> - выполняется оператор присваивания. Таким образом, переменная <code class="highlighter-rouge">result = 150</code>.</p>
+
+<p>Данный пример более наглядно и реалистично показывает механику вызова функций на примере Python.<br />
+Вообще, я считаю, что понятие функции (как подпрограммы) в программировании, носит фундаментальный характер. Ведь, если абстрактно взглянуть на программирование, то мы увидим, что <strong>объект</strong> это, ничто иное, как функция с внутренним состоянием (памятью). <strong>Класс</strong> – это генератор объектов, по сути, тоже функция, которая возвращает как результат - объект (который так же является функцией), у каждого такого объекта своя изолированная память – <strong>инкапсуляция</strong>. Ну и если сюда добавить концепцию <strong>наследования</strong>, то мы получаем <strong>ООП</strong> :)</p>
 
 
   </article>
@@ -205,7 +148,7 @@ $ git push heroku master
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-06-01T17:27:54+04:00">2021</time>
+		  &copy; <time datetime="2021-06-21T10:23:34+03:00">2021</time>
 		</font>  
 		  
         </small>

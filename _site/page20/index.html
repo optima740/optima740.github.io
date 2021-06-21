@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <title>
     
       AndreyMelnikov.MyBlog &middot;    # мой блог: IT-марафон.
@@ -60,56 +61,47 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/django/2020/04/13/Django-create-rest-api/">
-        Django. Быстро прикручиваем REST API к проекту.
+      <a href="/django/2020/04/20/Django-scrf/">
+        Django. Немного о SCRF.
       </a>
     </h1>
 
-    <time datetime="2020-04-13T00:00:00+04:00" class="post-date">13 Apr 2020</time>
+    <time datetime="2020-04-20T00:00:00+03:00" class="post-date">20 Apr 2020</time>
 
-    <p><img src="/image/post-2020-04-13/add_rest.JPG" alt="" /></p>
+    <p><img src="/image/post-2020-04-20/csrf.jpg" alt="" /></p>
 
-<p>Давайте рассмотрим Django REST framework (<code class="highlighter-rouge">djangorestframework</code>), применительно к своему Django-проекту. Это библиотека, которая взаимодействует с моделями Django для реализации гибкого API в рамках разрабатываемого проекта.<br />
-Итак, Django REST framework использует три слоя: маршрутизатор (<code class="highlighter-rouge">urls</code>), представление (<code class="highlighter-rouge">ViewSet</code>) и сериализатор (<code class="highlighter-rouge">serializer</code>).<br />
-<strong>Маршрутизатор</strong> определяет URL-адреса, которые будут предоставлять доступ к каждому виду.  <br />
-<strong>Представление</strong> определяет функции или классы (чтение, создание, обновление, удаление), которые будут доступны через API.<br />
-<strong>Сериализатор</strong> преобразует информацию, хранящуюся в базе данных, и определенную с помощью моделей Django, в формат, который легко и эффективно передается через API.</p>
+<p><strong>Cross-Site Request Forgery</strong> – если адаптировать на русский язык, то получается что-то вроде межсайтовая подделка запроса. Суть данной атаки в том, что браузер не может различить, было ли действие выполнено пользователем умышленно (например, переход по ссылке или нажатие на кнопку отправки формы на целевой ресурс), или пользователь выполнил действие не умышленно (например, при посещении ресурса-злоумышленника, этот ресурс отправил запрос от имени пользователя на целевой ресурс, на котором пользователь остался «залогиненым»). <br />
+Получается, что ресурс-злоумышленник, вклинившись между пользователем и целевым ресурсом (<strong>cross-site</strong>), может отправить HTTP запрос (<strong>request</strong>), используя авторизированные данные пользователя, и совершить какие-либо действия от имени пользователя на целевом ресурсе (<strong>forgery</strong>).</p>
 
-<p>Собственно, по этим слоям мы и будем двигаться при создании REST API в своем приложении. <br />
-Не забываем добавить библиотеку <code class="highlighter-rouge">djangorestframework</code> в настройки нашего проекта. В файле <code class="highlighter-rouge">settings.py</code> добавим в атрибут установленных приложений <code class="highlighter-rouge">INSTALLED_APPS = […]</code> строку <code class="highlighter-rouge">rest_framework</code> в кавычках.<br />
-Далее, создадим отдельную директорию <code class="highlighter-rouge">api/</code> в корне каталога с приложением на одном уровне с директориями <code class="highlighter-rouge">templates</code> и <code class="highlighter-rouge">static</code>. Внутри директории <code class="highlighter-rouge">api/</code> будут располагаться наши файлы (слои) <code class="highlighter-rouge">serializers.py</code>, <code class="highlighter-rouge">views.py</code> и <code class="highlighter-rouge">urls.py</code>.
-Создадим для начала сериализатор (в <code class="highlighter-rouge">serializers.py</code>), наследуя его от <code class="highlighter-rouge">ModelSerializer</code>:</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ThingSerializer</span><span class="p">(</span><span class="n">serializers</span><span class="o">.</span><span class="n">ModelSerializer</span><span class="p">):</span>
-  <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">Thing</span>
-    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">'name'</span><span class="p">,</span> <span class="p">)</span>
+<p><img src="/image/post-2020-04-20/csrf-attack.jpg" alt="" /><br />
+На сегодня общепринятым методом защиты от подобного рода атак, является использование csrf-токенов. <strong>Токен</strong> - сгенерированный случайным образом сервером ключ, который передается клиенту и возвращается обратно серверу для проверки.
+Своеобразная система «свой» - «чужой».</p>
+
+<p>В Django также реализован данный функционал. CSRF защита является частью ядра Django. Кроме того, мы можем использовать декоратор <code class="highlighter-rouge">django.views.decorators.csrf.csrf_protect</code> для обеспечения защиты для конкретных вьюх. <br />
+Django использует механизм csrf protect. Он заключается в том, чтобы отдать токен клиенту двумя методами: в куках и в одном из параметров ответа (header или внутри HTML).<br />
+При запросе клиента на стороне сервера генерится токен. В ответе сервера, токен возвращается в cookie (<code class="highlighter-rouge">X-CSRF-Token</code>) и в одном из параметров ответа (в header или внутри HTML).<br />
+В последующих запросах клиент обязан передать оба,  полученных ранее токена. Один как cookie, другой либо как header, либо внутри POST данных формы. <br />
+При получении запроса от клиента небезопасным методом (POST, PUT, DELETE, PATCH) сервер проверяет на идентичность токен из cookie и токен, который явно прислал клиент.</p>
+
+<p>Давайте проверим данный механизм при помощи curl. <br />
+<strong>Curl</strong> – кроссплатформенная программа для командной строки. При помощи Curl мы можем взаимодействовать с сервером по различным протоколам. Нас, в частности, интересуют HTTP-запросы. 
+Мы авторизуемся на сайте и попробуем обратиться, используя HTTP-запросы, чтобы получить список автомобилей, ограничение доступа к которому я описывал в предыдущих статьях.<br />
+Для Windows, как для наиболее распространенной платформы, запускаем <code class="highlighter-rouge">cmd.exe</code> от имени админа. Итак, если мы просто отправим POST запрос с данными для авторизации:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -v -d "username=manager&amp;password=1234567" http://127.0.0.1:8000/accounts/login/
 </code></pre></div></div>
-<p><code class="highlighter-rouge">model</code> - тут мы указываем какую модель будем использовать (импортируем из <code class="highlighter-rouge">models.py</code>)<br />
-<code class="highlighter-rouge">fields</code> - указываем, какие поля доступны этому сериализатору из выбранной модели. Также, может быть установлен <code class="highlighter-rouge">exclude</code> вместо <code class="highlighter-rouge">fields</code>, который будет включать все поля модели, кроме тех, которые указаны в exclude.</p>
-
-<p>Сериализатор анализирует информацию в обоих направлениях (чтение и запись), тогда как представление (<code class="highlighter-rouge">ViewSet</code>)  - это тот код, в котором определены доступные операции. Наиболее распространенным ViewSet является <code class="highlighter-rouge">ModelViewSet</code><br />
-Внутри <code class="highlighter-rouge">views.py</code> создаем представление (класс) наследуя его от <code class="highlighter-rouge">ModelViewSet</code>:</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ThingViewSet</span><span class="p">(</span><span class="n">viewsets</span><span class="o">.</span><span class="n">ModelViewSet</span><span class="p">):</span>
-    <span class="n">queryset</span> <span class="o">=</span> <span class="n">Thing</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">all</span><span class="p">()</span>
-    <span class="n">serializer_class</span> <span class="o">=</span> <span class="n">ThingSerializer</span>
+<p>В ответ получаем сообщение сервера с кодом 403, а именно <code class="highlighter-rouge">"In general, this can occur when there is a genuine Cross Site Request Forgery, or when"</code>, что говорит нам о не совпадении csrf токена.<br />
+Для того, чтобы сервер понял, что мы «свои» сымитируем действия браузера. Сделаем сначала предварительный GET-запрос, затем сохраним полученный cookie файл, вытащим из него csrf-token и передадим его в повторном POST запросе c данными для авторизации:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -c cookie.txt http://127.0.0.1:8000/accounts/login/
 </code></pre></div></div>
-<p><code class="highlighter-rouge">queryset</code> – список, срез объектов запрошенных из БД. <code class="highlighter-rouge">Thing.objects.all()</code>- в данном случае запрашиваем все доступные. Можем также использовать фильтрацию: <code class="highlighter-rouge">Thing.objects.filter(&lt;название поля в models&gt;=&lt;значение&gt;)</code>
-<code class="highlighter-rouge">serializer_class</code> – привязываем наш сериализатор (импортируя его из <code class="highlighter-rouge">serializers.py</code>)</p>
-
-<p>Для корректной работы нашего представления, нам осталось пробросить к нему URL, чтобы запросы клиента попадали в наше представление (вьюху) через URL. Для этого, в основном файле проекта <code class="highlighter-rouge">urls.py</code> (находится на одном уровне с <code class="highlighter-rouge">settings.py</code>), делаем связность urls с urls из каталога <code class="highlighter-rouge">api\</code>, добавляя в список <code class="highlighter-rouge">urlpatterns[…]</code> :</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
-	<span class="n">path</span><span class="p">(</span><span class="s">'api/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'&lt;директория с приложением&gt;.api.urls'</span><span class="p">)),</span>
-	
-<span class="p">]</span>
+<p>Подставляем полученный токен из cookie.txt в следующий запрос. В нем мы передаем серверу, как сам cookie, так и поле c токеном:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl --cookie cookie.txt http://127.0.0.1:8000/accounts/login/ -H "X-CSRFToken: owPT8worwO0Bd8AEfqUg1FB2NIPkEQ8DHoJ0kAVPUm1hsSrMS0y0AT7T6qsUNqXa" -b "csrftoken=owPT8worwO0Bd8AEfqUg1FB2NIPkEQ8DHoJ0kAVPUm1hsSrMS0y0AT7T6qsUNqXa" -d "username=manager1&amp;password=Qwertyu_123&amp;next=" -c cookie.txt
 </code></pre></div></div>
-<p>Теперь, при обращении к адресу <code class="highlighter-rouge">..api/</code>, запрос пользователя будет перенаправлен в <code class="highlighter-rouge">api\urls.py</code> .
-Ну и наконец, в каталоге <code class="highlighter-rouge">api\</code> в <code class="highlighter-rouge">urls.py</code> делаем привязку к нашему представлению, добавляя в список <code class="highlighter-rouge">urlpatterns[…]</code>:</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">urlpatterns</span> <span class="o">=</span> <span class="p">[</span>
-	<span class="n">url</span><span class="p">(</span><span class="s">r'^thing/$'</span><span class="p">,</span> <span class="n">ThingViewSet</span><span class="o">.</span><span class="n">as_view</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s">'ThingViewSet'</span><span class="p">),</span>
+<p>В этот раз, сервер отвечает уже сообщением 302, что означает редирект. А мы помним, что в механизме авторизации редирект указывается в настройках, как адрес куда нас перенаправят при успешной авторизации. <br />
+Итак, мы успешно авторизовались. Осталось получить список автомобилей. Для этого отправим GET-запрос вместе с cookie:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl --cookie cookie.txt -v http://127.0.0.1:8000/api/cars/
 </code></pre></div></div>
-<p>В итоге, обратившись по адресу:<code class="highlighter-rouge"> ../api/thing/</code>, мы получим список полей из нашей модели. Также мы можем получить данный список в JSON формате, сделав запрос вида: <code class="highlighter-rouge">../api/thing/?format=json</code></p>
-
-<p>В данной статье рассмотрен самый простой способ “поднять” REST API в своем приложении с минимальным функционалом. Для полноценного взаимодействия, чтобы клиент мог делать изменения, обновлять и удалять данные, то есть операции Create, Read, Update, Delete (CRUD), необходимо переопределять родительские методы класса <code class="highlighter-rouge">ModelViewSet</code>, и добавлять соответствующий функционал в <code class="highlighter-rouge">ThingSerializer</code>. Но об этом в другой раз.</p>
+<p>Сервер ответил кодом 200 ОК. А ниже мы видим наш список в JSON формате:
+<img src="/image/post-2020-04-20/curl-cmd.JPG" alt="" /></p>
 
 
   </article>
@@ -139,7 +131,7 @@
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-06-01T17:27:54+04:00">2021</time>
+		  &copy; <time datetime="2021-06-21T10:23:34+03:00">2021</time>
 		</font>  
 		  
         </small>
