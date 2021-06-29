@@ -4,7 +4,7 @@
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+ 
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <title>
     
@@ -61,106 +61,41 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/django/2020/04/01/Django-stop-control/">
-        Django. Стоп, контроль!
+      <a href="/django/2020/04/12/Django-REST/">
+        Django. Знакомство с REST.
       </a>
     </h1>
 
-    <time datetime="2020-04-01T00:00:00+03:00" class="post-date">01 Apr 2020</time>
+    <time datetime="2020-04-12T00:00:00+03:00" class="post-date">12 Apr 2020</time>
 
-    <p><img src="/image/post-2020-04-01/stop-control2.jpg" alt="" /></p>
+    <p><img src="/image/post-2020-04-12/rest_api.jpg" alt="" /></p>
 
-<p>Для большинства современных веб-приложений наличие механизма аутентификации пользователя является обязательным условием. 
-Но, для начала давайте поймем разницу между такими, казалось бы, похожими понятиями, как идентификация, аутентификация и авторизация.<br />
-Итак, <strong>Идентификация</strong> — это процесс определения, что за пользователь перед нами. <strong>Аутентификация</strong> — это процесс подтверждения, что этот пользователь именно тот, за кого себя выдает, то есть, процесс сопоставления переданных данных от пользователя с существующими учетными данными в БД. <strong>Авторизация</strong> — это процесс принятия решения о том, что именно этой аутентифицированной персоне разрешается делать, то есть, назначение прав пользователю для разграничения доступа к ресурсам.<br />
-В Django имеется встроенный функционал для реализации процесса аутентификации и авторизации. Этим самым “готовым кубиком” служит приложение <code class="highlighter-rouge">auth</code> из <code class="highlighter-rouge">django.contrib.auth</code>. 
-Что бы работал сам механизм аутентификации и авторизации пользователя, необходимо изначально в моделях (models) использовать для создания пользователя встроенный в Django класс <strong>User</strong>, и уже при необходимости наследовать от него свои пользовательские классы. Именно в стандартном встроенном классе User реализована механика взаимодействия при аутентификации и авторизации. <br />
-Приложение аутентификации Django предоставляет следующие функциональные возможности из «коробки»:</p>
+<p>На сегодняшний день всемирная сеть интернет использует модель “клиент-серверного” взаимодействия. Клиент отправляет запрос — сервер ему отвечает. Общение браузеров и веб-сайтов (первые выступают в роли клиента, а вторые в роли сервера) происходило при помощи html-рендеринга, и HTTP протокола.</p>
 
-<p>•	Класс авторизации <code class="highlighter-rouge">LoginView</code><br />
-•	Класс выхода <code class="highlighter-rouge">LogoutView</code><br />
-•	Сброс пароля <code class="highlighter-rouge">PasswordResetView</code><br />
-•	Смена пароля <code class="highlighter-rouge">PasswordChangeView</code></p>
+<p>Чтобы получить данные с веб-сайта, браузер отправляет запрос GET к серверу. Сервер формирует ответ в виде html-страницы и передает ее браузеру. В этой самой html-странице сервер заложил все необходимые веб-формы, заполнив которые, пользователь мог бы передать свои данные обратно на сервер. Когда мы ввели свои данные в форму на сайте, браузер отправляет серверу запрос POST, в котором содержатся наши данные, а сервер обрабатывает их и записывает в базу данных.<br />
+Но, с течением времени такая схема взаимодействия перестала удовлетворять постоянно растущие требования к веб-разработке. Интернет проникает в нашу жизнь все глубже и глубже. Интеграция с всемирной сетью происходит все сильнее. На данный момент емкость протокола IPv4 исчерпана. На смену ему приходит IPv6, что говорит о том, что в будущем, практически, каждая лампочка может иметь свой собственный IP-адрес и подключаться к интернет (internet of things, IoT).<br />
+Итак, появление мобильных приложений, различных устройств с доступом в интернет, привело к тому, что для них уже не подходил стандартный способ html-рендеринга на сервере, ведь теперь каждому клиенту нужно было отрисовать данные по-своему.</p>
 
-<p>Нам нужно только предоставить шаблоны для реализации этих функций в нашем приложении.
-Все примеры, описанные ниже, относятся к версии Django 3 и выше.</p>
+<p>Для всех этих задач есть другой способ обмена данными — Web <strong>API</strong> (Application Programming Interface). Смысл этого способа в том, что сервер передает клиенту не html-страницу, а непосредственно данные, никак не влияя на то, как эти данные будут в итоге представлены. Наиболее популярными форматами для передачи данных становятся XML и JSON. Таким образом, сервер полностью избавляется от задачи отрисовки данных. Постепенно Web API стал приобретать все большую популярность. Этому способствовало быстрое развитие инструментов на языке JavaScript, а также появление различных веб-фреймворков.<br />
+Браузерные приложения научились отрисовывать веб-страницы самостоятельно, получая чистые данные с сервера. Веб-приложения на сервере научились создавать API быстро и легко. Так сформировалась четкое разделение на <strong>Backend</strong> и <strong>Frontend</strong> разработку: тех, кто поддерживает приложение на сервере, и тех, кто делает браузерные (клиентские) приложения. А Web API стал универсальным способом общения для сервера и всех его клиентов (браузеров, мобильных приложений, других серверов).<br />
+Со временем становилось понятно, что необходим некий стандарт, который охватит все тонкости в общении между компонентами (как передавать данные, в каком формате, как сообщать об ошибках), ведь на простых договоренностях между разработчиками далеко не уедешь. И таким стандартом стала архитектурная модель взаимодействия компонентов – REST.</p>
 
-<p>Для начала, подготовим необходимый шаблон для прохождения процесса аутентификации. Проще говоря, форму, куда будут вноситься пользовательские данные username и password. Создадим директорию в корне нашего проекта: <code class="highlighter-rouge">templates/registration</code>, а внутри <code class="highlighter-rouge">registration</code> создаем два шаблона <code class="highlighter-rouge">login.html</code> и <code class="highlighter-rouge">logged_out.html</code> для “залогинивания” и “разлогинивания” соответственно.<br />
-Для того, чтобы все корректно работало, внутри директории <code class="highlighter-rouge">templates/</code>(если он еще не создан) добавим еще один файл <code class="highlighter-rouge">base_generic.html</code> с содержимым:</p>
-<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-<span class="cp">&lt;!DOCTYPE html&gt;</span>
-<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>
-<span class="nt">&lt;head&gt;</span>
-  {% block title %}<span class="nt">&lt;title&gt;</span>Local Library<span class="nt">&lt;/title&gt;</span>{% endblock %}
-<span class="nt">&lt;/head&gt;</span>
-<span class="nt">&lt;body&gt;</span>
-  {% block sidebar %}
-  {% if user.is_authenticated %}
-     <span class="nt">&lt;li&gt;</span>User: {{ user.get_username }}<span class="nt">&lt;/li&gt;</span>
-     <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'logout'%}?next={{request.path}}"</span><span class="nt">&gt;</span>Logout<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
-   {% else %}
-     <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'login'%}?next={{request.path}}"</span><span class="nt">&gt;</span>Login<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
-   {% endif %}
-  {% endblock %}
-  {% block content %}<span class="c">&lt;!-- default content text (typically empty) --&gt;</span>{% endblock %}
-<span class="nt">&lt;/body&gt;</span>
-<span class="nt">&lt;/html&gt;</span>
+<p>Representational State Transfer (<strong>REST</strong>) для управления данными использует привязку к стандартным методам HTTP-протокола. Существует несколько стандартных действий для работы с данными — это Create, Read, Update, Delete (CRUD).</p>
 
+<p>• Create - соответствует HTTP методу POST<br />
+• Read — соответствует HTTP методу GET<br />
+• Update — соответствует HTTP методу PUT<br />
+• Delete — соответствует HTTP методу DELETE</p>
+
+<p>На сегодняшний день, наверное, каждый язык программирования для веб-разработки имеет в своем арсенале фреймворк REST-API.
+REST не обошел стороной и Django. Благодаря чему на сегодняшний день мы имеем библиотеку Django REST Framework, подключаемую при помощи:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pip</span> <span class="n">install</span> <span class="n">djangorestframework</span>
 </code></pre></div></div>
-<p>Далее, с учетом расширения <code class="highlighter-rouge">base_generic.html</code>, создадим <code class="highlighter-rouge">login.html</code>:</p>
-<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-{% extends "base_generic.html" %}
-{% block content %}
-  {% if form.errors %}
-    <span class="nt">&lt;p&gt;</span>Your username and password didn't match. Please try again.<span class="nt">&lt;/p&gt;</span>
-  {% endif %}  
-  {% if next %}
-    {% if user.is_authenticated %}
-      <span class="nt">&lt;p&gt;</span>Your account doesn't have access to this page. To proceed,
-      please login with an account that has access.<span class="nt">&lt;/p&gt;</span>
-    {% else %}
-      <span class="nt">&lt;p&gt;</span>Please login to see this page.<span class="nt">&lt;/p&gt;</span>
-    {% endif %}
-  {% endif %}  
-  <span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"post"</span> <span class="na">action=</span><span class="s">"{% url 'login' %}"</span><span class="nt">&gt;</span>
-    {% csrf_token %}
-    <span class="nt">&lt;table&gt;</span>
-      <span class="nt">&lt;tr&gt;</span>
-        <span class="nt">&lt;td&gt;</span>{{ form.username.label_tag }}<span class="nt">&lt;/td&gt;</span>
-        <span class="nt">&lt;td&gt;</span>{{ form.username }}<span class="nt">&lt;/td&gt;</span>
-      <span class="nt">&lt;/tr&gt;</span>
-      <span class="nt">&lt;tr&gt;</span>
-        <span class="nt">&lt;td&gt;</span>{{ form.password.label_tag }}<span class="nt">&lt;/td&gt;</span>
-        <span class="nt">&lt;td&gt;</span>{{ form.password }}<span class="nt">&lt;/td&gt;</span>
-      <span class="nt">&lt;/tr&gt;</span>
-    <span class="nt">&lt;/table&gt;</span>
-    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"login"</span> <span class="nt">/&gt;</span>
-    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"next"</span> <span class="na">value=</span><span class="s">"{{ next }}"</span> <span class="nt">/&gt;</span>
-  <span class="nt">&lt;/form&gt;</span>  
-  {# Assumes you setup the password_reset view in your URLconf #}
-  <span class="nt">&lt;p&gt;&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'password_reset' %}"</span><span class="nt">&gt;</span>Lost password?<span class="nt">&lt;/a&gt;&lt;/p&gt;</span> 
-{% endblock %}
 
-</code></pre></div></div>
-<p>И, соответственно, <code class="highlighter-rouge">logged_out.html</code>:</p>
-<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-{% extends "base_generic.html" %}
-{% block content %}
-  <span class="nt">&lt;p&gt;</span>Logged out!<span class="nt">&lt;/p&gt;</span>  
-  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'login'%}"</span><span class="nt">&gt;</span>Click here to login again.<span class="nt">&lt;/a&gt;</span>
-{% endblock %}
+<p><img src="/image/post-2020-04-12/rest.gif" alt="" /></p>
 
-</code></pre></div></div>
-<p>Далее установим параметр редиректа (перенаправления) после удачной аутентификации пользователя. Для этого в файле <code class="highlighter-rouge">settings.py</code> добавим параметр:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LOGIN_REDIRECT_URL = '/'
-</code></pre></div></div>
-<p><code class="highlighter-rouge">'/'</code> – означает, что будет произведен редирект на главную страницу сайта.
-Затем, делаем связывание пути и представления (вьюхи), которое будет отрабатывать саму логику аутентификации. В основном файле <code class="highlighter-rouge">rls.py</code>, который находится на одном уровне с  <code class="highlighter-rouge">settings.py</code>. свяжем адрес <code class="highlighter-rouge">accounts/</code>, и встроенное представление для аутентификации - <code class="highlighter-rouge">django.contrib.auth.urls</code>, которое и будет отвечать за всю дальнейшую логику, своего рода “черный ящик”:</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">path</span><span class="p">(</span><span class="s">'accounts/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'django.contrib.auth.urls'</span><span class="p">))</span>
-</code></pre></div></div>
-<p>Тем самым, пройдя по ссылке ..<code class="highlighter-rouge">/accounts/login/</code> , <code class="highlighter-rouge">django.contrib.auth.urls</code> обратится в директорию <code class="highlighter-rouge">templates/registration</code> за поиском шаблона <code class="highlighter-rouge">login.html</code> для отображения, который мы предусмотрительно заранее создали. 
-Запускаем наш локальный сервер (manage.py runserver) и проверяем работу.<br />
-Аналогичным образом можно реализовать возможности выхода (logged_out) и смены пароля (Password_Change).</p>
+<p><code class="highlighter-rouge">В написании данной статьи использовались материалы из источника: https://mkdev.me/posts/chto-takoe-django-rest-framework</code></p>
 
 
   </article>
@@ -190,7 +125,7 @@
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-06-21T10:44:10+03:00">2021</time>
+		  &copy; <time datetime="2021-06-29T11:24:14+03:00">2021</time>
 		</font>  
 		  
         </small>

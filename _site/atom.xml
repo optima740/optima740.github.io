@@ -4,7 +4,7 @@
  <title>AndreyMelnikov.MyBlog</title>
  <link href="http://localhost:4000/atom.xml" rel="self"/>
  <link href="http://localhost:4000/"/>
- <updated>2021-06-21T10:44:10+03:00</updated>
+ <updated>2021-06-29T11:24:14+03:00</updated>
  <id>http://localhost:4000</id>
  <author>
    <name>Andrey Melnikov</name>
@@ -13,11 +13,115 @@
 
  
  <entry>
+   <title>Типы данных в Python.</title>
+   <link href="http://localhost:4000/imperative/2021/06/21/Types-in-python/"/>
+   <updated>2021-06-21T00:00:00+03:00</updated>
+   <id>http://localhost:4000/imperative/2021/06/21/Types in python</id>
+   <content type="html">&lt;p&gt;&lt;img src=&quot;/image/post-2021-06-29/logo1.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Язык программирования Python из года в год набирает все большую популярность. Данный язык используется во множестве различных сфер, например, AI/ML, Big Data, Data Science, Computer Science. Кроме того, питон имеет достаточно невысокий порог входа для новичков и пропагандируется многими IT-лидерами, что также добавляет дров в печь толкающую популярность вверх.&lt;/p&gt;
+
+&lt;p&gt;Сегодня я хотел бы сделать небольшой обзор встроенных типов данных, которые используются внутри языка.&lt;br /&gt;
+Для начала я постараюсь своими словами объяснить, что такое тип данных.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Тип данных&lt;/strong&gt; – это множество допустимых (возможных) значений, для какой-либо программной сущности. Если очень примитивно говорить (для более простого понимания), тип данных необходим для того, чтобы интерпретатор понимал сколько памяти необходимо выделить или зарезервировать под ту или иную сущность, описанную в программе.&lt;/p&gt;
+
+&lt;p&gt;Python имеет &lt;strong&gt;динамическую типизацию&lt;/strong&gt; (позднее связывание). Данный вид типизации еще принято называть «утиной типизацией», при которой конкретный тип объекта не важен, а важны лишь свойства и методы, которыми этот объект обладает. Другими словами, если объект плавает и крякает как утка, то вероятнее всего, это и есть утка!&lt;br /&gt;
+При динамической типизации, тип объекта (сущности) определяется не в момент компиляции (трансляции) программы (т.е. до ее запуска), а в момент исполнения программы (т.е. после ее запуска). Типы переменных неизвестны до того момента, пока у них не появляются конкретные значения при запуске программы.&lt;/p&gt;
+
+&lt;p&gt;Наряду с динамической типизацией, питон &lt;strong&gt;сильно типизирован&lt;/strong&gt;. Это означает, что неявное приведение типов исключено. Например, мы можем определить две переменные без указания типа, но мы не можем сложить эти две переменные, если в одной окажется строка, а в другой число. Компилятор в данном случае вмешается с уточнением.&lt;br /&gt;
+Кроме того, питон использует ссылочную модель данных, то есть оперирует не значениями, а ссылками (безопасными указателями) на значения (объекты). Я немного писал уже об этом вот в этой своей &lt;a href=&quot;https://optima740.github.io/universe/2021/02/02/programming-universe4/&quot;&gt;статье&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Также, я хотел бы отметить еще одну характеристику программных сущностей – способность к изменению. Сущность, которая позволяет себя изменить, после того как была определена в программе, называется &lt;strong&gt;мутабельной&lt;/strong&gt;. Соответственно, ту сущность которую изменить нельзя, называют &lt;strong&gt;иммутабельной&lt;/strong&gt;.&lt;br /&gt;
+Но, несмотря на «утиную типизацию», встроенные типы данных в питоне все же есть. Ниже я привел типы данных Python, для некоторых из которых будут доступны ссылки на мой GitHub, где я реализовывал их в целях лучшего понимания.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Числовой тип (иммутабельный)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;int.&lt;/strong&gt; – целые числа (числа без дробной части). По сути неограниченной длины. Интерпретатор сам определит необходимость использования объектов неограниченной длины и сделает нужные для этого преобразования.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;float&lt;/strong&gt; – числа с плавающей точкой с точностью до 15 десятичных знаков. В памяти представлены как совокупность двух частей: &lt;em&gt;мантиссы&lt;/em&gt; и &lt;em&gt;экспоненты&lt;/em&gt; (n, e). Мантисса – дробная часть без учета порядка. Экспоненту можно рассматривать как количество цифр перед запятой, отделяющей дробную часть числа. Например: &lt;code class=&quot;highlighter-rouge&quot;&gt;1.2 E3 = 1.2 * 1000 = 1200&lt;/code&gt; (1.2 – мантисса E3 - экспонента)&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;complex&lt;/strong&gt; – комплексные числа. (состоящие из вещественной и мнимой части как из двух координат). Показательной особенностью комплексных чисел является возможность извлечения корня из отрицательных значений. В Python комплексные числа задаются с помощью функции &lt;code class=&quot;highlighter-rouge&quot;&gt;complex()&lt;/code&gt;:
+    &lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;complex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;z&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;+&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;2j&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Еще есть «лонги»:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;long&lt;/strong&gt; – содержит длинные целые числа, которые могут быть представлены в восьмеричной или шестнадцатеричной системе счисления 
+(существует в Python 2.x. В Python 3.x данный функционал взяли на себя &lt;code class=&quot;highlighter-rouge&quot;&gt;int&lt;/code&gt;).&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Логический тип данных (иммутабельный)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;bool&lt;/strong&gt; – True/False (1/0). Тип данных, который принимает 2 значения – истина или ложь. &lt;code class=&quot;highlighter-rouge&quot;&gt;True&lt;/code&gt; и &lt;code class=&quot;highlighter-rouge&quot;&gt;False&lt;/code&gt; в Python являются экземплярами класса &lt;code class=&quot;highlighter-rouge&quot;&gt;bool&lt;/code&gt;, который в свою очередь является подклассом &lt;code class=&quot;highlighter-rouge&quot;&gt;int&lt;/code&gt;. Поэтому &lt;code class=&quot;highlighter-rouge&quot;&gt;True&lt;/code&gt; и &lt;code class=&quot;highlighter-rouge&quot;&gt;False&lt;/code&gt; в Python ведут себя как числа &lt;code class=&quot;highlighter-rouge&quot;&gt;1&lt;/code&gt; и &lt;code class=&quot;highlighter-rouge&quot;&gt;0&lt;/code&gt;. Отличие только в том, как они выводятся на экран.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Строки (иммутабельны)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;str&lt;/strong&gt; - cтроки в Python являются экземплярами класса &lt;code class=&quot;highlighter-rouge&quot;&gt;str&lt;/code&gt;. Строка представляет собой последовательность (массив) символов Юникода. Строки неизменяемы.
+К элементам строки можно получать доступ по их индексам, как в массиве, а также использовать срезы.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Двоичные последовательности&lt;/strong&gt;:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;bytes (иммутабельны)&lt;/strong&gt; – по сути это те же строки, только в двоичном представлении (целое число от 0 до 255), &lt;code class=&quot;highlighter-rouge&quot;&gt;bytes&lt;/code&gt; можно получить из &lt;code class=&quot;highlighter-rouge&quot;&gt;str&lt;/code&gt;, если известна кодировка.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;bytearray (мутабельны)&lt;/strong&gt; - массив байт. От типа &lt;code class=&quot;highlighter-rouge&quot;&gt;bytes&lt;/code&gt; отличается только тем, что является изменяемым.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Кортежи (иммутабельны)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;tuple&lt;/strong&gt;. Кортеж — это упорядоченная, неизменяемая коллекция объектов произвольных типов. Кортеж является иммутабельным объектом в Python. После определения кортежа, его нельзя изменить. Это дает некотрую выгоду при использовании памяти, т.к. кортеж не может изменяться динамически, в отличие от списков. Однако, не стоит забывать, что в питоне ссылочная модель данных, и если сама структура &lt;code class=&quot;highlighter-rouge&quot;&gt;tuple&lt;/code&gt; не изменяема, то это не значит, что не может изменяться тот объект на который указывает ссылка из кортежа.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Cписки (мутабельны)&lt;/strong&gt;.&lt;br /&gt;
+&lt;a href=&quot;https://github.com/optima740/Data_structures-Python-/blob/master/level_1/My_new_list.py&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Мой пример реализации на Python&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;list&lt;/strong&gt;. Cписок можно определить, как упорядоченную и изменяемую коллекцию (набор), состоящую из объектов произвольных типов. По сути, в реализации питона, список – это динамический массив ссылок.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Словари (мутабельны)&lt;/strong&gt;&lt;br /&gt;
+&lt;a href=&quot;https://github.com/optima740/Data_structures-Python-/blob/master/level_1/NativeArray.py&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Мой пример реализации на Python&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;dict&lt;/strong&gt;. Словарь или ассоциативный массив - представляет собой неупорядоченный набор (не последовательность) пар &lt;code class=&quot;highlighter-rouge&quot;&gt;«ключ»: «значение»&lt;/code&gt;. Если просто описать суть данной структуры данных (не вникая в нюансы коллизий и тд), то она заключается в том, что по значению «ключа» высчитывается хэш, который служит, своего рода индексом для «значения» (структура хэш-таблицы). Т.к. хэши CPU считает очень быстро, то и доступ к элементам словаря практически мгновенный. Кроме того, возможность посчитать хэш есть только для иммутабельных объктов. Потому, ключами для словаря могут стать только неизменяемые объекты, и ключи всегда уникальны.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Множества&lt;/strong&gt;.&lt;br /&gt;
+&lt;a href=&quot;https://github.com/optima740/Data_structures-Python-/blob/master/level_1/My_Set-new.py&quot;&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;Мой пример реализации на Python&lt;/code&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;set (мутабельны)&lt;/strong&gt;. Набор (не последовательность) уникальных элементов. Элементами множества могут быть любые неизменяемые объекты. Поскольку множество основано на хэш-таблице, элементы множества должны быть хешируемыми, то есть функция hash() должна работать с ними, а это возможно только с иммутабельными объектами. Для множества доступны основные аналогичные математические операции: объединение, пересечение, разность, симметрическая разность. Одной из часто используемых “полезностей” множества является то, что можно быстро и эффективно определить входит ли элемент(или несколько элементов) в состав набора.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;strong&gt;frozenset (иммутабельны)&lt;/strong&gt;. Отличаются от обычного &lt;code class=&quot;highlighter-rouge&quot;&gt;set&lt;/code&gt; лишь тем, что является неизменяемым типом данных.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Это был мой краткий обзор основных “коробочных” типов данных в Python. Для ясности и простоты восприятия я решил привести следующую таблицу:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/image/post-2021-06-29/python_type_table.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Ну и еще можно конечно сюда отнести Классы (&lt;strong&gt;class&lt;/strong&gt;). Ведь класс - это, по сути, возможность создавать пользовательский тип данных, и в питоне класс также является объектом, порожденным от мета-класса, но об этом в отдельной статье :)&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
    <title>Принципы SOLID. Или как сделать код SOLID-нее.</title>
    <link href="http://localhost:4000/cleancode/2021/06/21/CleanCode-solid/"/>
    <updated>2021-06-21T00:00:00+03:00</updated>
    <id>http://localhost:4000/cleancode/2021/06/21/CleanCode-solid</id>
-   <content type="html">&lt;p&gt;&lt;img src=&quot;/image/post-2021-06-21/solid.jpg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+   <content type="html">&lt;p&gt;&lt;img src=&quot;/image/post-2021-06-21/solid.JPG&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
 
 &lt;p&gt;На мой взгляд чистота кода - ключевой аспект в хард-навыках программиста-разработчика. Даже не столько знание алгоритмов решает (хотя и это очень важный момент), а именно умение писать понятный чистый код. Это как с человеком. Если человек, утром вставая с постели, имеет привычку заправлять ее после сна, всегда имеет в распоряжении чистую не мятую одежду, следит за своим внешним видом, не позволяя себе ходить с грязной головой или не чищенными зубами, грамотно излагает свою речь, то, скорее всего, вы предпочтете иметь дело с таким человеком. По крайней мере, вам будет приятно с ним общаться, не взирая на его физические данные и политические взгляды. Точно так и с кодом.&lt;/p&gt;
 
