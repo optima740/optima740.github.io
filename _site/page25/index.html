@@ -61,26 +61,106 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/django/2020/03/25/Django/">
-        Django, приятно познакомиться.
+      <a href="/django/2020/04/01/Django-stop-control/">
+        Django. Стоп, контроль!
       </a>
     </h1>
 
-    <time datetime="2020-03-25T00:00:00+03:00" class="post-date">25 Mar 2020</time>
+    <time datetime="2020-04-01T00:00:00+03:00" class="post-date">01 Apr 2020</time>
 
-    <p><img src="/image/post-2020-03-25/django1.jpg" alt="" />
-<strong>Django</strong> – очень мощный, обширный и, наверное, один из самых популярных веб-фреймворков современности. Развивался, как open-source проект, был назван в честь джазового гитариста Джанго Рейнхардта и получил релиз в 2005 году.
-Данный фреймворк дает очень широкие и гибкие возможности для проектирования веб-проектов различной сложности.</p>
+    <p><img src="/image/post-2020-04-01/stop-control2.jpg" alt="" /></p>
 
-<p>Если очень кратко описать основную суть Django, то, на мой взгляд, это будет выглядеть следующим образом. Django имеет такую структуру проектирования, которая позволяет разграничить зоны ответственности фронтенда и бэкенда, и эффективно взаимодействовать в рамках классической концепции <strong>MVC</strong> (Model, View, Controller) или, в случае с самим Django – <strong>MVT</strong> (Model, View, Template). Иными словами, дизайнер и программист больше не мешают друг другу. Бэкенд логика не перемешана с элементами верстки страницы, как, например, в PHP.<br />
-Если описывать очень просто, то механизм работы следующий. Данные запроса от клиента-пользователя (request) идут, как по конвейеру: обрабатывается адрес (url), затем подставляется необходимое представление для данного url. Непосредственно представление (view) несет в себе саму логику бэкенда, которая взаимодействует с базой данных посредством моделей (models) и выводит результат, подставляя полученные данные в шаблон (template) для отрисовки в браузере клиента. <br />
-Все это, конечно же, взаимодействует по “клиент – серверной” модели, используя HTTP протокол.</p>
+<p>Для большинства современных веб-приложений наличие механизма аутентификации пользователя является обязательным условием. 
+Но, для начала давайте поймем разницу между такими, казалось бы, похожими понятиями, как идентификация, аутентификация и авторизация.<br />
+Итак, <strong>Идентификация</strong> — это процесс определения, что за пользователь перед нами. <strong>Аутентификация</strong> — это процесс подтверждения, что этот пользователь именно тот, за кого себя выдает, то есть, процесс сопоставления переданных данных от пользователя с существующими учетными данными в БД. <strong>Авторизация</strong> — это процесс принятия решения о том, что именно этой аутентифицированной персоне разрешается делать, то есть, назначение прав пользователю для разграничения доступа к ресурсам.<br />
+В Django имеется встроенный функционал для реализации процесса аутентификации и авторизации. Этим самым “готовым кубиком” служит приложение <code class="highlighter-rouge">auth</code> из <code class="highlighter-rouge">django.contrib.auth</code>. 
+Что бы работал сам механизм аутентификации и авторизации пользователя, необходимо изначально в моделях (models) использовать для создания пользователя встроенный в Django класс <strong>User</strong>, и уже при необходимости наследовать от него свои пользовательские классы. Именно в стандартном встроенном классе User реализована механика взаимодействия при аутентификации и авторизации. <br />
+Приложение аутентификации Django предоставляет следующие функциональные возможности из «коробки»:</p>
 
-<p>Разработка проекта на Django концептуально основывается на принципе DRY (Don’t repeat yourself), что означает, не повторяй, то что уже есть, и сравнимо со строительством из компонентов, как из кубиков. А этих «кубиков» сам фреймворк имеет огромное множество в виде подключаемых модулей и библиотек.</p>
+<p>•	Класс авторизации <code class="highlighter-rouge">LoginView</code><br />
+•	Класс выхода <code class="highlighter-rouge">LogoutView</code><br />
+•	Сброс пароля <code class="highlighter-rouge">PasswordResetView</code><br />
+•	Смена пароля <code class="highlighter-rouge">PasswordChangeView</code></p>
 
-<p>Также, стоит еще отметить встроенный механизм <strong>ORM</strong> (Object, Relating, Mapping). Данный API позволяет, как бы, наложить или связать сущности языка программирования (в данном случае Python) с логикой базы данных (PostgreSQL, MySQL, SQLite и Oracle). Таким образом, механизм ORM заключает в себе процесс наложения полей models в Django с полями БД, совмещая это с логикой работы самой базы данных. Вся механика взаимодействия с БД скрыта “под капотом” models в Django.</p>
+<p>Нам нужно только предоставить шаблоны для реализации этих функций в нашем приложении.
+Все примеры, описанные ниже, относятся к версии Django 3 и выше.</p>
 
-<p>Данный веб-фреймворк может использоваться со множеством сторонних приложений, в зависимости от целей и потребностей разрабатываемого проекта. За время своего существования, Django постоянно совершенствуется и изменяется. На момент написания данной статьи, Django считается лучшим фреймворком, написанным на Python для веб-разработки, который должен стать обязательным к изучению всем веб-разработчикам, начинающим и не только.</p>
+<p>Для начала, подготовим необходимый шаблон для прохождения процесса аутентификации. Проще говоря, форму, куда будут вноситься пользовательские данные username и password. Создадим директорию в корне нашего проекта: <code class="highlighter-rouge">templates/registration</code>, а внутри <code class="highlighter-rouge">registration</code> создаем два шаблона <code class="highlighter-rouge">login.html</code> и <code class="highlighter-rouge">logged_out.html</code> для “залогинивания” и “разлогинивания” соответственно.<br />
+Для того, чтобы все корректно работало, внутри директории <code class="highlighter-rouge">templates/</code>(если он еще не создан) добавим еще один файл <code class="highlighter-rouge">base_generic.html</code> с содержимым:</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="cp">&lt;!DOCTYPE html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;head&gt;</span>
+  {% block title %}<span class="nt">&lt;title&gt;</span>Local Library<span class="nt">&lt;/title&gt;</span>{% endblock %}
+<span class="nt">&lt;/head&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+  {% block sidebar %}
+  {% if user.is_authenticated %}
+     <span class="nt">&lt;li&gt;</span>User: {{ user.get_username }}<span class="nt">&lt;/li&gt;</span>
+     <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'logout'%}?next={{request.path}}"</span><span class="nt">&gt;</span>Logout<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
+   {% else %}
+     <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'login'%}?next={{request.path}}"</span><span class="nt">&gt;</span>Login<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
+   {% endif %}
+  {% endblock %}
+  {% block content %}<span class="c">&lt;!-- default content text (typically empty) --&gt;</span>{% endblock %}
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+
+</code></pre></div></div>
+<p>Далее, с учетом расширения <code class="highlighter-rouge">base_generic.html</code>, создадим <code class="highlighter-rouge">login.html</code>:</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+{% extends "base_generic.html" %}
+{% block content %}
+  {% if form.errors %}
+    <span class="nt">&lt;p&gt;</span>Your username and password didn't match. Please try again.<span class="nt">&lt;/p&gt;</span>
+  {% endif %}  
+  {% if next %}
+    {% if user.is_authenticated %}
+      <span class="nt">&lt;p&gt;</span>Your account doesn't have access to this page. To proceed,
+      please login with an account that has access.<span class="nt">&lt;/p&gt;</span>
+    {% else %}
+      <span class="nt">&lt;p&gt;</span>Please login to see this page.<span class="nt">&lt;/p&gt;</span>
+    {% endif %}
+  {% endif %}  
+  <span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"post"</span> <span class="na">action=</span><span class="s">"{% url 'login' %}"</span><span class="nt">&gt;</span>
+    {% csrf_token %}
+    <span class="nt">&lt;table&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+        <span class="nt">&lt;td&gt;</span>{{ form.username.label_tag }}<span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span>{{ form.username }}<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+      <span class="nt">&lt;tr&gt;</span>
+        <span class="nt">&lt;td&gt;</span>{{ form.password.label_tag }}<span class="nt">&lt;/td&gt;</span>
+        <span class="nt">&lt;td&gt;</span>{{ form.password }}<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;/tr&gt;</span>
+    <span class="nt">&lt;/table&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"submit"</span> <span class="na">value=</span><span class="s">"login"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"next"</span> <span class="na">value=</span><span class="s">"{{ next }}"</span> <span class="nt">/&gt;</span>
+  <span class="nt">&lt;/form&gt;</span>  
+  {# Assumes you setup the password_reset view in your URLconf #}
+  <span class="nt">&lt;p&gt;&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'password_reset' %}"</span><span class="nt">&gt;</span>Lost password?<span class="nt">&lt;/a&gt;&lt;/p&gt;</span> 
+{% endblock %}
+
+</code></pre></div></div>
+<p>И, соответственно, <code class="highlighter-rouge">logged_out.html</code>:</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+{% extends "base_generic.html" %}
+{% block content %}
+  <span class="nt">&lt;p&gt;</span>Logged out!<span class="nt">&lt;/p&gt;</span>  
+  <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"{% url 'login'%}"</span><span class="nt">&gt;</span>Click here to login again.<span class="nt">&lt;/a&gt;</span>
+{% endblock %}
+
+</code></pre></div></div>
+<p>Далее установим параметр редиректа (перенаправления) после удачной аутентификации пользователя. Для этого в файле <code class="highlighter-rouge">settings.py</code> добавим параметр:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LOGIN_REDIRECT_URL = '/'
+</code></pre></div></div>
+<p><code class="highlighter-rouge">'/'</code> – означает, что будет произведен редирект на главную страницу сайта.
+Затем, делаем связывание пути и представления (вьюхи), которое будет отрабатывать саму логику аутентификации. В основном файле <code class="highlighter-rouge">rls.py</code>, который находится на одном уровне с  <code class="highlighter-rouge">settings.py</code>. свяжем адрес <code class="highlighter-rouge">accounts/</code>, и встроенное представление для аутентификации - <code class="highlighter-rouge">django.contrib.auth.urls</code>, которое и будет отвечать за всю дальнейшую логику, своего рода “черный ящик”:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">path</span><span class="p">(</span><span class="s">'accounts/'</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s">'django.contrib.auth.urls'</span><span class="p">))</span>
+</code></pre></div></div>
+<p>Тем самым, пройдя по ссылке ..<code class="highlighter-rouge">/accounts/login/</code> , <code class="highlighter-rouge">django.contrib.auth.urls</code> обратится в директорию <code class="highlighter-rouge">templates/registration</code> за поиском шаблона <code class="highlighter-rouge">login.html</code> для отображения, который мы предусмотрительно заранее создали. 
+Запускаем наш локальный сервер (manage.py runserver) и проверяем работу.<br />
+Аналогичным образом можно реализовать возможности выхода (logged_out) и смены пароля (Password_Change).</p>
 
 
   </article>
@@ -110,7 +190,7 @@
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-06-29T14:56:59+03:00">2021</time>
+		  &copy; <time datetime="2021-07-16T16:15:42+03:00">2021</time>
 		</font>  
 		  
         </small>

@@ -61,73 +61,83 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/django/2020/05/28/Django-timezone/">
-        Django. Время поговорить о времени.
+      <a href="/django/2020/06/14/Django-button_admin/">
+        Django. Своя кнопка в админке.
       </a>
     </h1>
 
-    <time datetime="2020-05-28T00:00:00+03:00" class="post-date">28 May 2020</time>
+    <time datetime="2020-06-14T00:00:00+03:00" class="post-date">14 Jun 2020</time>
 
-    <p><img src="/image/post-2020-05-28/time2.jpg" alt="" />
-Сегодня я хотел бы сделать небольшие заметки относительно тайм-зон и о том, как я столкнулся с их применением в Django.<br />
-<strong>Тайм-зона</strong> – это привязка к часовому поясу. Как мы знаем, часовой пояс это, по сути, поправка, на которую корректируют время по географическому расположению относительно UTC. В свою очередь, <strong>UTC</strong> (Universal Time Coordinated) – это, своего рода, абсолютное время, относительно которого уже идет смещение поправки по часовым поясам в зависимости от географического расположения пользователя.</p>
+    <p><img src="/image/post-2020-06-14/admin.jpg" alt="" />
+В Django, как мы знаем, очень много уже реализованного функционала идет сразу в комплекте, так сказать, «из коробки». Сделано это разработчиками для нашего удобства и, соответственно, для простоты разработки пользовательских проектов на данном вебфреймворке. За что, конечно-же, отдельное спасибо разработчикам.</p>
 
-<p>В Django настройки тайм-зоны выставляются глобально в файле <code class="highlighter-rouge">settings.py</code></p>
+<p>Давайте рассмотрим админку. Админ панель в Django представляет из себя своего рода пункт управления для администратора, где можно созвать, редактировать, удалять модели, объединять в группы созданных пользователей, назначать им права и многое другое. Для того, чтобы попасть в админку, необходимо пройти по адресу  <code class="highlighter-rouge">http://127.0.0.1:8000/admin/</code>. Далее мы попадем на страницу авторизации. Но для того, чтобы мы успешно авторизовались, необходимо заранее создать суперпользователя (собственно, самого админа).</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python manage.py createsuperuser
+</code></pre></div></div>
+<ul>
+  <li>где мы указываем username , email и password с подтверждением.</li>
+</ul>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">TIME_ZONE</span> <span class="o">=</span> <span class="s">'UTC'</span>
-<span class="n">USE_TZ</span> <span class="o">=</span> <span class="bp">True</span>
+<p>Теперь мы можем успешно пройти авторизацию и попасть в админку с возможностью использовать весь функционал администратора.<br />
+Но в процессе разработки бывают ситуации, когда необходимо «подогнать» под себя, или кастомизировать стандартную админку Django. Сейчас я не буду углубляться во все способы и возможности это сделать (например, через наследование от класса <code class="highlighter-rouge">admin.ModelAdmin</code> и переопределение поля для отображения полей модели, добавление фильтров и поиска и т.д.).</p>
+
+<p>Сегодня я хотел бы рассказать, как быстро сделать свою пользовательскую кнопку прямо в админ страничке, по нажатию на которую происходил бы GET запрос, и нам представлялся бы пользовательский шаблон HTML (ну или какой-либо user interface).<br />
+Итак, для добавления своей кнопки нам необходимо убедиться, что наше приложение указано в <code class="highlighter-rouge">settings.py</code> в списке <code class="highlighter-rouge">NSTALLED_APPS</code>. Далее нам необходимо создать «расширение» для стандартного админ-шаблона <code class="highlighter-rouge">change_form.html</code>. Разместить его можно по одной из следующих схем:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Шаблон применяется ко всем change_form:
+</span><span class="n">myproject</span><span class="o">/</span><span class="n">myapp</span><span class="o">/</span><span class="n">templates</span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">change_form</span><span class="o">.</span><span class="n">html</span>      
+
+<span class="c1"># Шаблон применяется к change_lists моего приложения myapp:
+</span><span class="n">myproject</span><span class="o">/</span><span class="n">myapp</span><span class="o">/</span><span class="n">templates</span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">myapp</span><span class="o">/</span><span class="n">change_form</span><span class="o">.</span><span class="n">html</span>  
+
+<span class="c1"># Шаблон применяется к change_list моего приложения myapp и только для модели mymodel:
+</span><span class="n">myproject</span><span class="o">/</span><span class="n">myapp</span><span class="o">/</span><span class="n">templates</span><span class="o">/</span><span class="n">admin</span><span class="o">/</span><span class="n">myapp</span><span class="o">/</span><span class="n">mymodel</span><span class="o">/</span><span class="n">change_form</span><span class="o">.</span><span class="n">html</span>  
 </code></pre></div></div>
 
-<p>Полем <code class="highlighter-rouge">TIME_ZONE</code> (для БД не поддерживающих часовые пояса) мы определяем, непосредственно, сам часовой пояс. В данном случае UTC. 
-<code class="highlighter-rouge">USE_TZ</code> – этим полем мы определяем для Django, что значение времени (например, поле модели типа <code class="highlighter-rouge">DateTimeField</code>) будет записано в базу данных в той тайм-зоне, которая указана в настройке проекта Django в поле <code class="highlighter-rouge">TIME_ZONE</code>. <br />
-Тут сразу следует сделать оговорку. Не все базы данных поддерживают формат времени с учетом тайм-зоны. Например, SQLite, MySQL, Oracle не поддерживают часовые пояса (а как раз SQLite, идет как стандартная БД для Django “из коробки”) – и в данном случае , при <code class="highlighter-rouge">USE_TZ = True</code>, фреймворк запишет время с учетом установки <code class="highlighter-rouge">TIME_ZONE</code>. 
-В случае, если в проекте Django используется БД, поддерживающая работу с часовыми поясами (например, PostgreSQL), то опция <code class="highlighter-rouge">USE_TZ</code> должна быть установлена в <code class="highlighter-rouge">False</code>, тем самым позволяя БД работать с часовым поясом, переданным в пользовательских данных без учета настройки проекта Django <code class="highlighter-rouge">TIME_ZONE</code>.</p>
-
-<p>Давайте рассмотрим следующий случай. В нашем приложении по учету автомобилей есть несколько предприятий. Для каждого предприятия нам необходимо реализовать возможность установки тайм-зоны путем выбора из предложенных вариантов часовых поясов, чтобы каждое предприятие могло работать в своем часовом поясе. Если при создании предприятия тайм-зона не выбрана, то это значение соответствует UTC. В <code class="highlighter-rouge">models.py</code> добавим поле для нашей модели <code class="highlighter-rouge">Enterprise:</code></p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Enterprise</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">TIMEZONES</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pytz</span><span class="o">.</span><span class="n">all_timezones</span><span class="p">,</span> <span class="n">pytz</span><span class="o">.</span><span class="n">all_timezones</span><span class="p">))</span>
-    <span class="n">title</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
-    <span class="n">address</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">64</span><span class="p">)</span>
-    <span class="n">time_zone</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="n">TIMEZONES</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s">'UTC'</span><span class="p">)</span>
+<p>Тут стоит сделать оговорку, и проверить правильно ли размещена директория templates. Она должна быть на одном уровне дерева каталогов с файлом <code class="highlighter-rouge">manage.py</code> и нашей базой данных <code class="highlighter-rouge">bd.sqlite3</code>.<br />
+Если, все же, после размещения шаблона по одному из указанных путей, шаблон не определяется Django автоматически, то можно прописать его принудительно в виде атрибута внутри класса админ-модели в <code class="highlighter-rouge">admin.py</code>:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyModelAdmin</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+    <span class="c1">#... 
+</span>    <span class="n">change_list_template</span> <span class="o">=</span> <span class="s">"path/to/change_form.html"</span>  
 </code></pre></div></div>
+<p>Затем, нам необходимо отредактировать содержимое нашего расширения для стандартного <code class="highlighter-rouge">change_form.html</code>:</p>
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{% extends "admin/change_form.html" %}
+{% load i18n %}
 
-<p>Далее, для взаимодействия с моделями автомобилей добавим в модель <code class="highlighter-rouge">Car</code> поле, отвечающее за дату и время приобретения автомобиля, или постановки на учет в данном предприятии - как угодно. Данные о приобретении автомобиля заносятся автоматически и значение берется из текущего времени пользователя (<code class="highlighter-rouge">auto_now=True</code>) с поправкой на настройку в <code class="highlighter-rouge">settings.py</code> (мы используем стандартную БД SQLite). Т.о. время в поле модели <code class="highlighter-rouge">Enterprise</code> запишется в абсолютном значении UTC.</p>
+{% block submit_buttons_bottom %}
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Car</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="n">brand</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
-    <span class="n">color</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-    <span class="n">fuel_util</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-    <span class="n">date_of_buy</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateTimeField</span><span class="p">(</span><span class="n">auto_now</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-    <span class="n">of_enterprise</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ForeignKey</span><span class="p">(</span><span class="s">'Enterprise'</span><span class="p">,</span> <span class="n">on_delete</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">SET_NULL</span><span class="p">,</span> <span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="nt">&lt;input</span> <span class="na">value=</span><span class="s">"Button_title"</span> <span class="na">type=</span><span class="s">"button"</span> <span class="na">onclick=</span><span class="s">"location.href='{% url 'admin:user_view' %}'"</span> <span class="nt">/&gt;</span>
+
+{{ block.super }}
+
+{% endblock %}
 </code></pre></div></div>
+<p>Данным кодом мы расширяем стандартный джанговский функционал, который внедрит нашу кнопку с именем <code class="highlighter-rouge">Button_title</code>, и при нажатии отправит GET запрос для <code class="highlighter-rouge">user_view</code>.<br />
+Всю механику отлова url и подстановки под этот url нашей пользовательской <code class="highlighter-rouge">user_view</code> будем делать внутри админ-модели в методе <code class="highlighter-rouge">get_urls()</code>.</p>
 
-<p>Т.к. в наш проект ранее мы интегрировали REST API, то изменять (делать поправку на часовой пояс предприятия) необходимо не в HTML шаблоне, а на стороне бэкенда для того, чтобы API сформировал уже готовые данные с учетом поправки на тайм-зону, и отдал эти данные (например, словарем) во фронтенд. Тем самым мы придерживаемся концепции API и оставляем логику на стороне бэкенда в нашем <code class="highlighter-rouge">views.py</code>:</p>
+<p>Ниже в моем примере, использовался шаблон для расширения (отрисовки кнопки) – <code class="highlighter-rouge">my_change_form.html</code>, пользовательская функция-вьюха - <code class="highlighter-rouge">get_repayment()</code>:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RepaymentAdmin</span><span class="p">(</span><span class="n">admin</span><span class="o">.</span><span class="n">ModelAdmin</span><span class="p">):</span>
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">Repayment</span>
+    <span class="n">list_display</span> <span class="o">=</span> <span class="p">[</span><span class="s">'customer'</span><span class="p">,</span> <span class="s">'payment_summ'</span><span class="p">,</span> <span class="s">'create_data'</span><span class="p">,</span> <span class="s">'processing_date'</span><span class="p">,</span> <span class="s">'status'</span><span class="p">,</span> <span class="s">'account_number'</span><span class="p">]</span> <span class="c1"># определяем отображаемые поля модели Repayment внутри админ-модели RepaymentAdmin
+</span>
+    <span class="k">def</span> <span class="nf">get_urls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+	<span class="c1"># метод обработки url, с подстановкой необходимой view.
+</span>
+        <span class="n">urls</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">RepaymentAdmin</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get_urls</span><span class="p">()</span>
+        <span class="n">custom_urls</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">path</span><span class="p">(</span><span class="s">'get/'</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">admin_site</span><span class="o">.</span><span class="n">admin_view</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_repayment</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="s">'repayment_view'</span><span class="p">),</span> <span class="p">]</span>
+        <span class="k">return</span>  <span class="n">custom_urls</span> <span class="o">+</span> <span class="n">urls</span>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_queryset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="c1"># переопределяем родительский метод для запроса из БД с фильтром для наших условий
-</span>    <span class="n">user_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>  <span class="c1"># получаем данные о имени пользователя из request
-</span>    <span class="n">list_car</span> <span class="o">=</span> <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">all</span><span class="p">()</span>            <span class="c1"># формируем список всех автомобилей
-</span>    <span class="n">enterprise</span> <span class="o">=</span> <span class="n">Enterprise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">manager__username__contains</span><span class="o">=</span><span class="n">user_name</span><span class="p">)</span>  <span class="c1"># получаем предприятие по пользователю
-</span>    <span class="n">list_car</span> <span class="o">=</span> <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">of_enterprise</span><span class="o">=</span><span class="n">enterprise</span><span class="p">)</span>   <span class="c1"># получаем список авто по конкретному предприятию
-</span>    <span class="n">tz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_time_zone</span><span class="p">()</span>                                 <span class="c1"># получаем таймзону из предприятия текущего менеджера
-</span>    <span class="k">for</span> <span class="n">car</span> <span class="ow">in</span> <span class="n">list_car</span><span class="p">:</span>   <span class="c1"># проходимся по всем автомобилям из списка запроса
-</span>        <span class="n">car_of_db</span> <span class="o">=</span> <span class="n">Car</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">car</span><span class="o">.</span><span class="nb">id</span><span class="p">)</span>        <span class="c1"># получаем из БД  машину по id
-</span>        <span class="n">datatime_of_db</span> <span class="o">=</span> <span class="n">car_of_db</span><span class="o">.</span><span class="n">date_of_buy</span>        <span class="c1"># получаем из поля значение даты и времени покупки машины
-</span>        <span class="n">datatime_tz</span> <span class="o">=</span> <span class="n">datatime_of_db</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">tz</span><span class="p">)</span>       <span class="c1"># корректировка даты и времени относительно другой tz
-</span>        <span class="n">car</span><span class="o">.</span><span class="n">date_of_buy</span> <span class="o">=</span> <span class="n">datatime_tz</span>                 <span class="c1"># записываем откорректированное время в список для отображения в шаблоне
-</span>    <span class="k">return</span> <span class="n">list_car</span>    
+    <span class="k">def</span> <span class="nf">get_repayment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+    	<span class="c1"># внутри данного метода (который подставится под запрос url), мы выполним какую-либо логику, и вернем в ответ пользовательский шаблон index.html
+</span>        <span class="k">return</span> <span class="n">render</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="s">'index.html'</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
 
-<span class="k">def</span> <span class="nf">get_time_zone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">user_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">username</span>
-    <span class="n">enterprise</span> <span class="o">=</span> <span class="n">Enterprise</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">manager__username__contains</span><span class="o">=</span><span class="n">user_name</span><span class="p">)</span>   <span class="c1"># получаем предприятие по пользователю
-</span>    <span class="n">tz</span> <span class="o">=</span> <span class="n">pytz</span><span class="o">.</span><span class="n">timezone</span><span class="p">(</span><span class="n">enterprise</span><span class="o">.</span><span class="n">time_zone</span><span class="p">)</span>     <span class="c1"># получаем таймзону из предприятия текущего менеджера
-</span>    <span class="k">return</span> <span class="n">tz</span>
+    <span class="c1"># переопределяем атрибут для принудительного использования нашего шаблона:
+</span>    <span class="n">change_form_template</span> <span class="o">=</span> <span class="s">'admin/myapp/repayment/my_change_form.html'</span>
 </code></pre></div></div>
-<p>Я постарался максимально подробно в коде расписать каждое действие пошагово, в целях бОльшей понятности.</p>
+<p>В итоге у нас должна отрисоваться пользовательская кнопка внутри админ страницы в модели пользователя, при нажатии на которую отработает метод <code class="highlighter-rouge">def get_repayment</code> и вернет пользовательский HTML шаблон:</p>
 
-<p>В итоге, наш API будет отдавать словарь с уже исправленным временем, применительно к часовому поясу того предприятия, за которым закреплены автомобиль и авторизованный сотрудник, который делает запрос на просмотр списка доступных авто.</p>
+<p><img src="/image/post-2020-06-14/Screenshot_1.jpg" alt="" /></p>
 
 
   </article>
@@ -157,7 +167,7 @@
         <small><font style="color: gray; font-size: 16px; font-family: Arial">
 		  <p><a href = 'https://vk.com/amelnikofcode'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль в ВК </font></a></p>
 		  <p><a href = 'https://github.com/optima740'><font style="color: gray; font-size: 16px; font-family: Arial"> Мой профиль на GitHub</font></a></p>
-		  &copy; <time datetime="2021-06-29T14:56:59+03:00">2021</time>
+		  &copy; <time datetime="2021-07-16T16:15:42+03:00">2021</time>
 		</font>  
 		  
         </small>
